@@ -1,0 +1,35 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && bun scripts/build.ts",
+    "start": "bun run dist/server.js",
+    "dev": "bun --watch src/server.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@google/genai": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "dayjs": "^1.11.13",
+    "dotenv": "^17.2.1",
+    "drizzle-orm": "^0.44.4",
+    "hono": "^4.8.10",
+    "jose": "^6.0.12",
+    "pako": "^2.1.0",
+    "pg": "^8.16.3",
+    "pino": "^9.7.0",
+    "uuid": "^11.1.0",
+    "zod": "^4.0.14"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/bun": "^1.2.19",
+    "@types/node": "^24.1.0",
+    "@types/pako": "^2.0.3",
+    "@types/pg": "^8.15.5",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.8.3"
+  }
+}
