@@ -25,7 +25,7 @@ class QuizRepository {
   }
 
   public async update(values: Quiz): Promise<Quiz | null> {
-    const result = await db.update(quizzes).set(values).returning();
+    const result = await db.update(quizzes).set(values).where(eq(quizzes.id, values.id)).returning();
     if (!result.length || !result[0]) return null;
     return result[0];
   }

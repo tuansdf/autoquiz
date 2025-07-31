@@ -45,7 +45,7 @@ class UserRepository {
   }
 
   public async update(values: User): Promise<User | null> {
-    const result = await db.update(users).set(values).returning();
+    const result = await db.update(users).set(values).where(eq(users.id, values.id)).returning();
     if (!result.length || !result[0]) return null;
     return result[0];
   }

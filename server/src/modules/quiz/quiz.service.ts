@@ -1,6 +1,8 @@
 import { CustomException } from "../../custom-exception.js";
 import { base64 } from "../../utils/base64.js";
 import { commonUtils } from "../../utils/common.util.js";
+import { logger } from "../../utils/logger.js";
+import { quizGenerator } from "./quiz-generator.js";
 import { MAX_CONTEXT_SIZE } from "./quiz.constant.js";
 import { quizRepository } from "./quiz.repository";
 import type { CreateQuizRequest, Quiz } from "./quiz.type";
@@ -14,19 +16,27 @@ class QuizService {
     return quizRepository.findAllByCreatedBy(userId);
   }
 
-  public async create(request: CreateQuizRequest, userId: string): Promise<Quiz> {
-    const context = base64.decode(request.context, { decompression: true });
-    if (context.length > MAX_CONTEXT_SIZE) {
-      throw new CustomException("Context is too long", 404);
+  private async generateQuestions(request: Quiz, context: string) {
+    const question = await quizGenerator.generateQuestions(context);
+    if (!question) {
+      logger.error("Could not generate question " + request.id);
+      return;
     }
-    // TODO: create questions
-    const questions: string = "";
+    request.questions = base64.encode(question, { compression: true });
+    await quizRepository.update(request);
+  }
+
+  public async create(request: CreateQuizRequest, userId: string): Promise<Quiz> {
+    const context = base64.decode(request.context!, { decompression: true });
+    if (context.length > MAX_CONTEXT_SIZE) {
+      throw new CustomException("Context is too long");
+    }
     const result = await quizRepository.insert({
       context: request.context,
       contextHash: commonUtils.sha1(request.context),
-      questions,
       createdBy: userId,
     });
+    this.generateQuestions(result!, context);
     return result!;
   }
 }
