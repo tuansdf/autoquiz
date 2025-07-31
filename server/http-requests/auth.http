@@ -8,8 +8,8 @@ POST {{base_url}}/api/auth/login
 Content-Type: application/json
 
 {
-  "username": "",
-  "password": ""
+  "username": "user1",
+  "password": "passworddddd"
 }
 
 ### Register
@@ -18,8 +18,8 @@ POST {{base_url}}/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "",
-  "password": ""
+  "username": "user1",
+  "password": "passworddddd"
 }
 
 ### Refresh token

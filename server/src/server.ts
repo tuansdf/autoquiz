@@ -1,7 +1,6 @@
 import "dotenv/config";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { HTTPException } from "hono/http-exception";
 import { secureHeaders } from "hono/secure-headers";
 import { ZodError } from "zod";
 import { CustomException } from "./custom-exception";
@@ -39,13 +38,11 @@ app.onError((err, c) => {
     status = err.status || 400;
     if (err.message) errorMessage = err.message;
   }
-  if (err instanceof HTTPException) {
-    status = err.status || 500;
-    if (err.message) errorMessage = err.message;
-  }
   if (err instanceof ZodError) {
     status = 400;
-    errorMessage = err.issues.map((issue) => String(issue.path[0]) + ": " + issue.message).join("\n");
+    errorMessage = err.issues
+      .map((issue) => (issue.path?.[0] ? String(issue.path[0]) + ": " : "") + issue.message)
+      .join("\n");
   }
   return Response.json({ message: errorMessage }, { status });
 });
