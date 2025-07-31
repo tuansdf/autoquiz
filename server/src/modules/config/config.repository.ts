@@ -23,14 +23,14 @@ class ConfigRepository {
     return result[0];
   }
 
-  public async insert(config: NewConfig): Promise<Config | null> {
-    const result = await db.insert(configs).values(config).returning();
+  public async insert(values: NewConfig): Promise<Config | null> {
+    const result = await db.insert(configs).values(values).returning();
     if (!result.length || !result[0]) return null;
     return result[0];
   }
 
-  public async update(config: Config): Promise<Config | null> {
-    const result = await db.update(configs).set(config).returning();
+  public async update(values: Config): Promise<Config | null> {
+    const result = await db.update(configs).set(values).returning();
     if (!result.length || !result[0]) return null;
     return result[0];
   }

@@ -38,14 +38,14 @@ class UserRepository {
     await db.update(users).set({ tokenValidFrom: now, updatedAt: now }).where(eq(users.id, userId));
   }
 
-  public async insert(user: NewUser): Promise<User | null> {
-    const result = await db.insert(users).values(user).returning();
+  public async insert(values: NewUser): Promise<User | null> {
+    const result = await db.insert(users).values(values).returning();
     if (!result.length || !result[0]) return null;
     return result[0];
   }
 
-  public async update(user: User): Promise<User | null> {
-    const result = await db.update(users).set(user).returning();
+  public async update(values: User): Promise<User | null> {
+    const result = await db.update(users).set(values).returning();
     if (!result.length || !result[0]) return null;
     return result[0];
   }
