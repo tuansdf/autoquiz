@@ -3,7 +3,7 @@ import { db } from "../../db/db";
 import { users } from "../../db/schema/users";
 import type { NewUser, User } from "./user.type";
 
-export class UserRepository {
+class UserRepository {
   public async existsAny(): Promise<boolean> {
     const result = await db
       .select({ count: sql`1`.mapWith(Number) })

@@ -28,7 +28,7 @@ const changePasswordSchema = z.object({
   newPassword: passwordSchema,
 });
 
-export class AuthValidator {
+class AuthValidator {
   public validateLogin(request: any): LoginRequest {
     return loginSchema.parse(request);
   }

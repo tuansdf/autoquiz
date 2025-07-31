@@ -1,0 +1,26 @@
+### Get all
+
+GET {{base_url}}/api/configs
+Authorization: Bearer {{access_token}}
+
+### Create
+
+POST {{base_url}}/api/configs
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "key": "",
+  "value": ""
+}
+
+### Update
+
+PATCH {{base_url}}/api/configs
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "key": "",
+  "value": ""
+}
