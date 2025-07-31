@@ -14,9 +14,6 @@ importers:
       '@mantine/hooks':
         specifier: ^8.2.1
         version: 8.2.1(react@19.1.1)
-      '@react-router/fs-routes':
-        specifier: ^7.7.1
-        version: 7.7.1(@react-router/dev@7.7.1(@react-router/serve@7.7.1(react-router@7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(typescript@5.8.3))(@types/node@24.1.0)(react-router@7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(sass@1.89.2)(sugarss@5.0.0(postcss@8.5.6))(terser@5.43.1)(typescript@5.8.3)(vite@7.0.6(@types/node@24.1.0)(sass@1.89.2)(sugarss@5.0.0(postcss@8.5.6))(terser@5.43.1)))(typescript@5.8.3)
       '@react-router/node':
         specifier: ^7.7.1
         version: 7.7.1(react-router@7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(typescript@5.8.3)
@@ -1473,16 +1470,6 @@ packages:
     peerDependencies:
       express: ^4.17.1 || ^5
       react-router: 7.7.1
-      typescript: ^5.1.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-
-  '@react-router/fs-routes@7.7.1':
-    resolution: {integrity: sha512-exqoToWiHOxpOnrRk3kIZCN2JiXPuZdlI6CcXBNpR/1nsvPtpajZK+rTzHBXbUEjMtYAd9XYOtg2dfWYyc5bNQ==}
-    engines: {node: '>=20.0.0'}
-    peerDependencies:
-      '@react-router/dev': ^7.7.1
       typescript: ^5.1.0
     peerDependenciesMeta:
       typescript:
@@ -5326,13 +5313,6 @@ snapshots:
       '@react-router/node': 7.7.1(react-router@7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(typescript@5.8.3)
       express: 4.21.2
       react-router: 7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-    optionalDependencies:
-      typescript: 5.8.3
-
-  '@react-router/fs-routes@7.7.1(@react-router/dev@7.7.1(@react-router/serve@7.7.1(react-router@7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(typescript@5.8.3))(@types/node@24.1.0)(react-router@7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(sass@1.89.2)(sugarss@5.0.0(postcss@8.5.6))(terser@5.43.1)(typescript@5.8.3)(vite@7.0.6(@types/node@24.1.0)(sass@1.89.2)(sugarss@5.0.0(postcss@8.5.6))(terser@5.43.1)))(typescript@5.8.3)':
-    dependencies:
-      '@react-router/dev': 7.7.1(@react-router/serve@7.7.1(react-router@7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(typescript@5.8.3))(@types/node@24.1.0)(react-router@7.7.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(sass@1.89.2)(sugarss@5.0.0(postcss@8.5.6))(terser@5.43.1)(typescript@5.8.3)(vite@7.0.6(@types/node@24.1.0)(sass@1.89.2)(sugarss@5.0.0(postcss@8.5.6))(terser@5.43.1))
-      minimatch: 9.0.5
     optionalDependencies:
       typescript: 5.8.3
 
