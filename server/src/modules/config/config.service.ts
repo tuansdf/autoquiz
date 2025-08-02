@@ -2,7 +2,7 @@ import { CustomException } from "../../custom-exception";
 import { configRepository } from "./config.repository";
 import type { Config, NewConfig } from "./config.type";
 
-const cache = new Map<string, string | null>();
+const cache = new Map<string, string>();
 
 class ConfigService {
   public async findTopByKey(key: string): Promise<Config | null> {
@@ -18,24 +18,28 @@ class ConfigService {
       throw new CustomException("Key existed");
     }
     const result = await configRepository.insert(request);
-    cache.set(result?.key || "", result?.value || null);
+    if (result) {
+      cache.set(result.key, result.value || "");
+    }
     return result;
   }
 
   public async update(request: Config): Promise<Config | null> {
     const result = await configRepository.update(request);
-    cache.set(result?.key || "", result?.value || null);
+    if (result) {
+      cache.set(result.key, result.value || "");
+    }
     return result;
   }
 
-  public async findValueByKey(key: string): Promise<string | null> {
-    if (!key) return null;
+  public async findValueByKey(key: string): Promise<string> {
+    if (!key) return "";
     const cached = cache.get(key);
-    if (typeof cached === "string" || cached === null) return cached;
+    if (typeof cached === "string") return cached;
     const result = await configRepository.findTopByKey(key);
-    if (!result) return null;
-    cache.set(key, result.value || null);
-    return result.value || null;
+    if (!result) return "";
+    cache.set(key, result.value || "");
+    return result.value || "";
   }
 }
 

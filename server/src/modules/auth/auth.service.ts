@@ -4,6 +4,7 @@ import { CustomException } from "../../custom-exception";
 import { Env } from "../../env";
 import { jwt } from "../../utils/jwt";
 import { passwordEncoder } from "../../utils/password-encoder";
+import { remoteConfigs } from "../config/remote-configs.js";
 import { userRepository } from "../user/user.repository";
 import type { User } from "../user/user.type";
 import { JWT_TYPE_ACCESS, JWT_TYPE_REFRESH } from "./auth.constant";
@@ -55,6 +56,9 @@ class AuthService {
   }
 
   public async register(request: RegisterRequest): Promise<LoginResponse> {
+    if (!(await remoteConfigs.isRegistrationEnabled())) {
+      throw new CustomException("Registration is disabled");
+    }
     const usernameExists = await userRepository.existsByUsername(request.username);
     if (usernameExists) {
       throw new CustomException("Username already exists");
