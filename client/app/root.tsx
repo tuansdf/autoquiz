@@ -1,5 +1,6 @@
-import { AntdProvider } from "@/lib/antd-provider.js";
+import { MantineProvider } from "@/lib/mantine-provider.js";
 import { QueryProvider } from "@/lib/query-provider.js";
+import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
 import type { PropsWithChildren } from "react";
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import type { Route } from "./+types/root";
@@ -7,10 +8,11 @@ import "@/styles";
 
 export function Layout({ children }: PropsWithChildren) {
   return (
-    <html lang="en">
+    <html lang="en" {...mantineHtmlProps}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <ColorSchemeScript />
         <Meta />
         <Links />
       </head>
@@ -26,9 +28,9 @@ export function Layout({ children }: PropsWithChildren) {
 export default function App() {
   return (
     <QueryProvider>
-      <AntdProvider>
+      <MantineProvider>
         <Outlet />
-      </AntdProvider>
+      </MantineProvider>
     </QueryProvider>
   );
 }
