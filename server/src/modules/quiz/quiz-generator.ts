@@ -19,13 +19,11 @@ const responseSchema = Type.Object(
           answers: Type.Array(
             Type.Object(
               {
-                id: Type.Number({
-                  minimum: 1,
-                  maximum: 4,
-                  description: "The identifier for the answer option (1 through 4).",
-                }),
                 text: Type.String({
                   description: "The text of this answer option.",
+                }),
+                correct: Type.Boolean({
+                  description: "If this option is correct",
                 }),
               },
               { additionalProperties: false },
@@ -34,17 +32,6 @@ const responseSchema = Type.Object(
               minItems: 4,
               maxItems: 4,
               description: "Exactly 4 answer options for the question.",
-            },
-          ),
-          correctAnswers: Type.Array(
-            Type.Number({
-              minimum: 1,
-              maximum: 4,
-            }),
-            {
-              minItems: 1,
-              maxItems: 3,
-              description: "An array of correct answer ids (1–4).",
             },
           ),
           explanation: Type.String({
@@ -72,7 +59,7 @@ You are a quiz generation assistant. Your task is to generate multiple-choice qu
 Each question should:
 - Be fact-based or conceptually grounded in the dataset.
 - Be written in the **same language as the input context**.
-- Have **exactly 4 answer options**, each with a unique ID from 1 to 4.
+- Have **exactly 4 answer options**.
 - Include **1 to 3 correct answers**, represented by their respective IDs.
 - Provide a **clear explanation** justifying the correct answer(s).
 - Be free of ambiguity, repetition, or grammatical errors.
@@ -100,7 +87,14 @@ class QuizGenerator {
       },
     });
     if (response.text) {
-      return JSON.parse(response.text);
+      const result = JSON.parse(response.text) as Response;
+      result?.questions.forEach((question, qi) => {
+        // @ts-ignore
+        question.id = String(qi + 1);
+        // @ts-ignore
+        question.answers?.forEach((answer, ai) => (answer.id = String(ai + 1)));
+      });
+      return result;
     }
     return null;
   }

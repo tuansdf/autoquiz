@@ -27,7 +27,9 @@ authRouter.get("/token/validate", authenticate(), async () => {
 authRouter.post("/token/invalidate", authenticate(), async (c) => {
   const userId = c.var.authPayload?.sub || "";
   await authService.invalidate(userId);
-  return Response.json(null);
+  return Response.json({
+    message: "OK",
+  });
 });
 
 authRouter.post("/password/reset", authenticate(), authorize(), async (c) => {
