@@ -1,93 +1,92 @@
 import { GoogleGenAI } from "@google/genai";
+import { type Static, Type } from "@sinclair/typebox";
 import { Env } from "../../env.js";
 
 const ai = new GoogleGenAI({ apiKey: Env.GEMINI_API_KEY });
 
-const responseSchema = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  title: "Multiple Choice Questions Dataset",
-  type: "array",
-  items: {
-    type: "object",
-    properties: {
-      question: {
-        type: "string",
-        description: "The text of the question.",
-      },
-      answers: {
-        type: "array",
-        minItems: 4,
-        maxItems: 4,
-        items: {
-          type: "object",
-          properties: {
-            id: {
-              type: "integer",
-              enum: [1, 2, 3, 4],
-              description: "The identifier for the answer option (1 through 4).",
+const responseSchema = Type.Object(
+  {
+    title: Type.String({
+      description: "A short descriptive title summarizing the dataset",
+      maxLength: 255,
+    }),
+    questions: Type.Array(
+      Type.Object(
+        {
+          question: Type.String({
+            description: "A clear and concise question derived from the dataset.",
+          }),
+          answers: Type.Array(
+            Type.Object(
+              {
+                id: Type.Number({
+                  minimum: 1,
+                  maximum: 4,
+                  description: "The identifier for the answer option (1 through 4).",
+                }),
+                text: Type.String({
+                  description: "The text of this answer option.",
+                }),
+              },
+              { additionalProperties: false },
+            ),
+            {
+              minItems: 4,
+              maxItems: 4,
+              description: "Exactly 4 answer options for the question.",
             },
-            text: {
-              type: "string",
-              description: "The text of the answer choice.",
+          ),
+          correctAnswers: Type.Array(
+            Type.Number({
+              minimum: 1,
+              maximum: 4,
+            }),
+            {
+              minItems: 1,
+              maxItems: 3,
+              description: "An array of correct answer ids (1–4).",
             },
-          },
-          required: ["id", "text"],
+          ),
+          explanation: Type.String({
+            description: "Explanation of why the answer is correct.",
+          }),
         },
-      },
-      correctAnswers: {
-        type: "array",
+        { additionalProperties: false },
+      ),
+      {
         minItems: 1,
-        maxItems: 3,
-        items: {
-          type: "integer",
-          enum: [1, 2, 3, 4],
-          description: "The id of the correct answer.",
-        },
-        description: "An array containing only the correct answer ids.",
+        description: "An array of quiz questions derived from the dataset.",
       },
-      explanation: {
-        type: "string",
-        description: "Explanation of why the answer is correct.",
-      },
-    },
-    required: ["question", "answers", "correctAnswers", "explanation"],
+    ),
   },
-};
+  {
+    title: "Multiple Choice Questions Dataset",
+  },
+);
+
+type Response = Static<typeof responseSchema>;
 
 const systemInstruction = `
-You are a quiz generation assistant. Your task is to generate multiple choice questions from a given dataset in text format. Each question must help readers review factual or conceptual knowledge clearly stated or implied in the dataset.
+You are a quiz generation assistant. Your task is to generate multiple-choice questions based on a given dataset provided in text format.
 
-Example of one element in the array:
-
-{
-  "question": "The question text",
-  "answers": [
-    { "id": 1, "text": "Option A" },
-    { "id": 2, "text": "Option B" },
-    { "id": 3, "text": "Option C" },
-    { "id": 4, "text": "Option D" }
-  ],
-  "correctAnswers": [2],
-  "explanation": "An explanation of why this answer is correct"
-}
+Each question should:
+- Be fact-based or conceptually grounded in the dataset.
+- Be written in the **same language as the input context**.
+- Have **exactly 4 answer options**, each with a unique ID from 1 to 4.
+- Include **1 to 3 correct answers**, represented by their respective IDs.
+- Provide a **clear explanation** justifying the correct answer(s).
+- Be free of ambiguity, repetition, or grammatical errors.
 
 Constraints:
-- Each question must be based on facts or ideas from the dataset.
-- There must be exactly 4 answer choices per question.
-- Up to 3 correct answers is allowed per question.
-- Each answers object must use an id of 1 through 4.
-- The correctAnswers field must be an array containing these ids.
-- Every question must include an informative explanation.
+- All questions must be diverse in topic and difficulty.
+- Avoid reusing the same fact or concept in multiple questions.
+- Do not include commentary, instructions, or explanations outside the JSON output.
 
-Make sure the questions vary in topic and difficulty, and avoid repeating the same fact across multiple questions.
-
-Do not include any commentary or preamble — only the raw JSON output.
-
-Your final output should be a single JSON array containing all 20 questions.
+Return **exactly 20 questions** in this format.
 `;
 
 class QuizGenerator {
-  public async generateQuestions(context: string): Promise<string | null> {
+  public async generateQuestions(context: string): Promise<Response | null> {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-lite",
       contents: context,
@@ -101,7 +100,7 @@ class QuizGenerator {
       },
     });
     if (response.text) {
-      return JSON.stringify(JSON.parse(response.text));
+      return JSON.parse(response.text);
     }
     return null;
   }

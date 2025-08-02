@@ -17,12 +17,14 @@ class QuizService {
   }
 
   private async generateQuestions(request: Quiz, context: string) {
-    const question = await quizGenerator.generateQuestions(context);
-    if (!question) {
+    const generated = await quizGenerator.generateQuestions(context);
+    if (!generated) {
       logger.error("Could not generate question " + request.id);
       return;
     }
-    request.questions = base64.encode(question, { compression: true });
+    request.title = generated.title;
+    request.questions = base64.encode(JSON.stringify(generated.questions), { compression: true });
+    request.updatedAt = new Date();
     await quizRepository.update(request);
   }
 
