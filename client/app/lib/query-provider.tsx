@@ -11,6 +11,16 @@ const queryClient = new QueryClient({
       }
     },
   }),
+  defaultOptions: {
+    queries: {
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchInterval: false,
+      refetchIntervalInBackground: false,
+      refetchOnReconnect: false,
+      staleTime: 1000 * 60 * 60,
+    },
+  },
 });
 
 export const QueryProvider = (props: PropsWithChildren) => {

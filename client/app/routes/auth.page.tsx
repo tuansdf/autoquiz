@@ -1,5 +1,5 @@
 import { login, register } from "@/api/auth.api.js";
-import { handleLoginSuccess } from "@/utils/auth.util.js";
+import { getAuth, handleLoginSuccess } from "@/utils/auth.util.js";
 import { handleHttpError } from "@/utils/common.util.js";
 import {
   Anchor,
@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 
 export const meta = () => {
   return [{ title: "Sign In" }];
@@ -32,12 +32,19 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const formMethods = useForm<FormValues>();
 
+  if (getAuth()) {
+    return <Navigate to="/" />;
+  }
+
   const handleSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
+      setIsLoading(true);
       const result = isSignUp ? await register(data) : await login(data);
       handleLoginSuccess(result, navigate);
     } catch (e) {
       handleHttpError(e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -51,16 +58,16 @@ export default function AuthPage() {
         </Title>
 
         {isSignUp ? (
-          <Text ta="center" fz={14}>
+          <Text ta="center" fz="sm">
             Have an account?{" "}
-            <Anchor component="span" role="button" onClick={() => setIsSignUp(false)} fz={14}>
+            <Anchor component="span" role="button" onClick={() => setIsSignUp(false)} fz="sm">
               Sign in
             </Anchor>
           </Text>
         ) : (
-          <Text ta="center" fz={14}>
+          <Text ta="center" fz="sm">
             Do not have an account yet?{" "}
-            <Anchor component="span" role="button" onClick={() => setIsSignUp(true)} fz={14}>
+            <Anchor component="span" role="button" onClick={() => setIsSignUp(true)} fz="sm">
               Sign up
             </Anchor>
           </Text>
@@ -71,7 +78,7 @@ export default function AuthPage() {
           withBorder
           shadow="sm"
           p={24}
-          mt={28}
+          mt="xl"
           radius="md"
           onSubmit={formMethods.handleSubmit(handleSubmit)}
         >

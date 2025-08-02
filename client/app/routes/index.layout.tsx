@@ -1,5 +1,5 @@
-import { getAuth } from "@/utils/auth.util.js";
-import { Button, Flex, Text } from "@mantine/core";
+import { getAuth, handleLogout } from "@/utils/auth.util.js";
+import { Box, Button, Flex, Text } from "@mantine/core";
 import { IconLogout } from "@tabler/icons-react";
 import React from "react";
 import { Link, Navigate, Outlet, useNavigate } from "react-router";
@@ -13,8 +13,8 @@ export default function IndexLayout() {
   }
 
   return (
-    <div>
-      <Flex p={20} justify="space-between">
+    <>
+      <Flex p="lg" justify="space-between">
         <Text
           component={Link}
           to="/"
@@ -25,11 +25,13 @@ export default function IndexLayout() {
         >
           AutoQuiz
         </Text>
-        <Button leftSection={<IconLogout size={14} />} variant="default" onClick={() => navigate("/auth")}>
+        <Button leftSection={<IconLogout size={14} />} variant="default" onClick={() => handleLogout(navigate)}>
           Sign out
         </Button>
       </Flex>
-      <Outlet />
-    </div>
+      <Box maw={800} mx="auto" pb="xl">
+        <Outlet />
+      </Box>
+    </>
   );
 }
