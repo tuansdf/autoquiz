@@ -15,3 +15,12 @@ export const getQuiz = async (id?: string): Promise<GetQuizResponse> => {
   }
   return quiz;
 };
+
+export const createQuiz = async (data: { context: string }): Promise<GetQuizResponse> => {
+  const result = await apiAuth.post("api/quizzes", {
+    json: {
+      context: base64.encode(JSON.stringify(data.context), { compression: true }),
+    },
+  });
+  return result.json();
+};

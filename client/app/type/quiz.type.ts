@@ -18,7 +18,7 @@ export type QuizDetail = {
 
 export type Question = {
   id?: string;
-  question?: string;
+  text?: string;
   answers?: { id?: string; text?: string; correct?: boolean; selected?: boolean }[];
   explanation?: string;
   selected?: string | string[];
