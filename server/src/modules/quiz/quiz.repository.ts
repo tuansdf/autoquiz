@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../db/db";
 import { quizzes } from "../../db/schema/quizzes";
 import type { NewQuiz, Quiz, QuizListItem } from "./quiz.type";
@@ -23,7 +23,8 @@ class QuizRepository {
         generated: sql<boolean>`(${quizzes.questions} is not null)`,
       })
       .from(quizzes)
-      .where(eq(quizzes.createdBy, userId));
+      .where(eq(quizzes.createdBy, userId))
+      .orderBy(desc(quizzes.id));
   }
 
   public async insert(values: NewQuiz): Promise<Quiz | null> {

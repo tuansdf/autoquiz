@@ -13,7 +13,7 @@ const responseSchema = Type.Object(
     questions: Type.Array(
       Type.Object(
         {
-          question: Type.String({
+          text: Type.String({
             description: "A clear and concise question derived from the dataset.",
           }),
           answers: Type.Array(
@@ -56,20 +56,18 @@ type Response = Static<typeof responseSchema>;
 const systemInstruction = `
 You are a quiz generation assistant. Your task is to generate multiple-choice questions based on a given dataset provided in text format.
 
-Each question should:
-- Be fact-based or conceptually grounded in the dataset.
-- Be written in the **same language as the input context**.
-- Have **exactly 4 answer options**.
-- Include **1 to 3 correct answers**, represented by their respective IDs.
-- Provide a **clear explanation** justifying the correct answer(s).
-- Be free of ambiguity, repetition, or grammatical errors.
+Requirements:
+- The questions must be **factual or conceptually grounded** in the dataset.
+- All questions and answer choices must be written in the **same language as the dataset**.
+- Each question must have **exactly 4 answer options**, labeled with a "text" and a "correct" boolean field.
+- Each question must have **between 1 and 3 correct answers** (correct: true) among the four options.
+- Provide a concise and informative **explanation** for each question that justifies the correct answer(s).
 
 Constraints:
-- All questions must be diverse in topic and difficulty.
-- Avoid reusing the same fact or concept in multiple questions.
-- Do not include commentary, instructions, or explanations outside the JSON output.
-
-Return **exactly 20 questions** in this format.
+- Generate **exactly 20 questions**.
+- Ensure **topic and difficulty diversity** across the questions.
+- Avoid duplication of facts, rephrased repetitions, or overlapping ideas.
+- Do **not** include any commentary, formatting guidance, or extra text—only return the raw JSON output.
 `;
 
 class QuizGenerator {
