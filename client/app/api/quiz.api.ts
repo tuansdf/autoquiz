@@ -1,5 +1,6 @@
-import { apiAuth } from "@/api/instance.api.js";
+import { apiAuth, apiPublic } from "@/api/instance.api.js";
 import type { GetQuizResponse, GetQuizzesResponse } from "@/type/quiz.type.js";
+import { getAuth } from "@/utils/auth.util.js";
 import { base64 } from "@/utils/base64.js";
 
 export const getQuizzes = async (): Promise<GetQuizzesResponse> => {
@@ -8,7 +9,12 @@ export const getQuizzes = async (): Promise<GetQuizzesResponse> => {
 };
 
 export const getQuiz = async (id?: string): Promise<GetQuizResponse> => {
-  const result = await apiAuth.get(`api/quizzes/${id}`);
+  const isAuth = !!getAuth();
+  let url = `api/quizzes/${id}`;
+  if (!isAuth) {
+    url = `api/quizzes/public/${id}`;
+  }
+  const result = await (isAuth ? apiAuth : apiPublic).get(url);
   const quiz = (await result.json()) as any;
   if (quiz?.data?.questions) {
     quiz.data.questions = JSON.parse(base64.decode(quiz.data.questions, { decompression: true }));
@@ -22,5 +28,10 @@ export const createQuiz = async (data: { context: string }): Promise<GetQuizResp
       context: base64.encode(JSON.stringify(data.context), { compression: true }),
     },
   });
+  return result.json();
+};
+
+export const updateQuizVisibility = async (data: { id: string; isPublic: boolean }): Promise<void> => {
+  const result = await apiAuth.patch(`api/quizzes/${data.id}/public?value=${data.isPublic}`);
   return result.json();
 };

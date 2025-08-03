@@ -1,9 +1,11 @@
-import { getQuiz } from "@/api/quiz.api.js";
+import { getQuiz, updateQuizVisibility } from "@/api/quiz.api.js";
 import { ScreenLoading } from "@/components/screen-loading.js";
 import type { Question } from "@/type/quiz.type.js";
-import { Alert, Box, Button, Checkbox, Flex, Radio, Text, Title } from "@mantine/core";
+import { getAuth } from "@/utils/auth.util.js";
+import { handleHttpError } from "@/utils/common.util.js";
+import { Alert, Box, Button, Checkbox, Flex, Radio, Switch, Text, Title } from "@mantine/core";
 import { IconCheck, IconX } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Controller, type SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { useParams } from "react-router";
@@ -64,8 +66,13 @@ export default function QuizPage() {
     return <ScreenLoading visible={dataQuery.isLoading} />;
   }
 
+  if (dataQuery.isError || !dataQuery.data?.data) {
+    return <Alert color="red" title="Quiz not found" />;
+  }
+
   return (
     <Box pos="relative">
+      <PublicSwitch checked={!!dataQuery.data.data.isPublic} />
       <Title mb="lg" fz="h3">
         {dataQuery.data?.data?.title}
       </Title>
@@ -165,3 +172,30 @@ export default function QuizPage() {
     </Box>
   );
 }
+
+const PublicSwitch = (props: { checked: boolean }) => {
+  const params = useParams<{ id?: string }>();
+  const updateMutation = useMutation({
+    mutationKey: ["quizzes", params.id],
+    mutationFn: updateQuizVisibility,
+  });
+
+  const handleSwitch = async (value: boolean) => {
+    try {
+      await updateMutation.mutateAsync({ id: params.id!, isPublic: value });
+    } catch (e) {
+      handleHttpError(e);
+    }
+  };
+
+  if (!getAuth()) return null;
+
+  return (
+    <Switch
+      checked={props.checked}
+      label="Make this quiz shareable"
+      onChange={(e) => handleSwitch(e.target.checked)}
+      mb="sm"
+    />
+  );
+};

@@ -66,7 +66,7 @@ export default function AuthPage() {
           </Text>
         ) : (
           <Text ta="center" fz="sm">
-            Do not have an account yet?{" "}
+            Don't have an account yet?{" "}
             <Anchor component="span" role="button" onClick={() => setIsSignUp(true)} fz="sm">
               Sign up
             </Anchor>
@@ -98,7 +98,7 @@ export default function AuthPage() {
             {...formMethods.register("password")}
           />
           <Button fullWidth mt="xl" radius="md" type="submit">
-            Sign in
+            {isSignUp ? "Sign up" : "Sign in"}
           </Button>
         </Paper>
       </Container>

@@ -5,6 +5,10 @@ import ky from "ky";
 
 const EXPIRED_SECONDS_OFFSET = 10;
 
+const redirectToAuth = () => {
+  window.location.href = "/auth";
+};
+
 export const apiPublic = ky.create({
   prefixUrl: import.meta.env.VITE_SERVER_BASE_URL,
 });
@@ -16,7 +20,7 @@ export const apiAuth = apiPublic.extend({
         try {
           const accessToken = decodeAccessToken();
           if (!accessToken) {
-            window.open("/auth");
+            redirectToAuth();
             return;
           }
           const expired = dayjs().unix() > (accessToken?.exp || 0) - EXPIRED_SECONDS_OFFSET;
@@ -26,7 +30,7 @@ export const apiAuth = apiPublic.extend({
           }
           const refreshJwt = getRefreshToken();
           if (!refreshJwt) {
-            window.open("/auth");
+            redirectToAuth();
             return;
           }
           const result = await refreshToken({ token: refreshJwt });
@@ -34,7 +38,7 @@ export const apiAuth = apiPublic.extend({
           request.headers.set("Authorization", "Bearer " + result.data?.accessToken);
           return request;
         } catch (e) {
-          window.open("/auth");
+          redirectToAuth();
         }
       },
     ],
