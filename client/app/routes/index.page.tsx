@@ -11,10 +11,6 @@ import { useMemo, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { Link } from "react-router";
 
-export const meta = () => {
-  return [{ title: "Home" }];
-};
-
 type FormValues = {
   context: string;
 };
@@ -50,6 +46,7 @@ export default function IndexPage() {
 
   return (
     <>
+      <title>Home</title>
       <Box pos="relative">
         <Flex justify="space-between" align="center" mb="md">
           <Title fz="h3">Quizzes</Title>
@@ -60,13 +57,14 @@ export default function IndexPage() {
             quizzesGroupedByDate &&
             Object.keys(quizzesGroupedByDate).map((date) => {
               return (
-                <Flex direction="column" gap="sm">
+                <Flex direction="column" gap="sm" key={date}>
                   <Text fw={600}>{date}</Text>
                   <Flex direction="column" gap="sm">
                     {quizzesGroupedByDate[date].map((quiz) => {
                       const generated = !!quiz.generated;
                       return (
                         <Button
+                          key={quiz.id}
                           component={generated ? Link : undefined}
                           to={generated ? `/quizzes/${quiz.id}` : ""}
                           disabled={!generated}

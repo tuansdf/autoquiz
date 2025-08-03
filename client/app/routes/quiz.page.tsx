@@ -10,10 +10,6 @@ import { useEffect, useState } from "react";
 import { Controller, type SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { useParams } from "react-router";
 
-export const meta = () => {
-  return [{ title: "Quiz" }];
-};
-
 type FormValues = {
   questions: Question[];
 };
@@ -71,105 +67,111 @@ export default function QuizPage() {
   }
 
   return (
-    <Box pos="relative">
-      <PublicSwitch checked={!!dataQuery.data.data.isPublic} />
-      <Title mb="lg" fz="h3">
-        {dataQuery.data?.data?.title}
-      </Title>
+    <>
+      <title>{dataQuery.data?.data?.title || "Quiz"}</title>
 
-      <Flex component="form" onSubmit={formMethods.handleSubmit(handleSubmit)} direction="column" gap="xl">
-        {(final || formArrayMethods.fields).map((question, i) => {
-          const fieldName = `questions.${i}.selected` as const;
-          return (
-            <Controller
-              key={question.id}
-              name={fieldName}
-              control={formMethods.control}
-              rules={{ required: { value: true, message: "Please select an answer" } }}
-              render={(fieldProps) => {
-                const correctAnswers = question.answers?.reduce((acc, cur) => acc + (cur.correct ? 1 : 0), 0) || 0;
-                const isMultipleChoice = correctAnswers > 1;
-                const errorMessage = fieldProps.fieldState.error?.message;
-                const isCorrectAnswer =
-                  !!final && !!question.answers?.every((item) => !!item.correct === !!item.selected);
-                return (
-                  <Flex direction="column" gap="xs">
-                    <Text>
-                      {!!final ? (
-                        <>
-                          {isCorrectAnswer && (
-                            <IconCheck
-                              color="green"
-                              size={16}
-                              stroke={3}
-                              style={{ display: "inline-block", marginBottom: "-2px" }}
-                            />
-                          )}
-                          {!isCorrectAnswer && (
-                            <IconX
-                              color="red"
-                              size={16}
-                              stroke={3}
-                              style={{ display: "inline-block", marginBottom: "-2px" }}
-                            />
-                          )}
-                        </>
-                      ) : undefined}{" "}
-                      {i + 1}. {question.text}
-                    </Text>
+      <Box pos="relative">
+        <PublicSwitch checked={!!dataQuery.data.data.isPublic} />
+        <Title mb="lg" fz="h3">
+          {dataQuery.data?.data?.title}
+        </Title>
+
+        <Flex component="form" onSubmit={formMethods.handleSubmit(handleSubmit)} direction="column" gap="xl">
+          {(final || formArrayMethods.fields).map((question, i) => {
+            const fieldName = `questions.${i}.selected` as const;
+            return (
+              <Controller
+                key={question.id}
+                name={fieldName}
+                control={formMethods.control}
+                rules={{ required: { value: true, message: "Please select an answer" } }}
+                render={(fieldProps) => {
+                  const correctAnswers = question.answers?.reduce((acc, cur) => acc + (cur.correct ? 1 : 0), 0) || 0;
+                  const isMultipleChoice = correctAnswers > 1;
+                  const errorMessage = fieldProps.fieldState.error?.message;
+                  const isCorrectAnswer =
+                    !!final && !!question.answers?.every((item) => !!item.correct === !!item.selected);
+                  return (
                     <Flex direction="column" gap="xs">
-                      {question.answers?.map((answer) => {
-                        const isCorrectAnswer = !!answer.correct;
-                        const isIncorrectSelect = !answer.correct && answer.selected;
-                        const isCorrect = !!answer.correct && !!answer.selected;
-                        const isIncorrect =
-                          (!answer.correct && answer.selected) || (!!answer.correct && !answer.selected);
-                        return (
-                          <Flex
-                            component="label"
-                            align="center"
-                            gap="xs"
-                            key={answer.id}
-                            c={final ? (isCorrectAnswer ? "green" : isIncorrectSelect ? "red" : undefined) : undefined}
-                            fw={final ? (isCorrectAnswer || isIncorrectSelect ? 600 : undefined) : undefined}
-                          >
-                            {isMultipleChoice ? (
-                              <Checkbox size="xs" value={answer.id} {...formMethods.register(fieldName)} />
-                            ) : (
-                              <Radio size="xs" value={answer.id} {...formMethods.register(fieldName)} />
+                      <Text>
+                        {!!final ? (
+                          <>
+                            {isCorrectAnswer && (
+                              <IconCheck
+                                color="green"
+                                size={16}
+                                stroke={3}
+                                style={{ display: "inline-block", marginBottom: "-2px" }}
+                              />
                             )}
-                            <span>{answer.text}</span>
-                            {!!final && (
-                              <Text span style={{ flexShrink: 0 }}>
-                                {isCorrect && <IconCheck color="green" size={14} />}
-                                {isIncorrect && <IconX color="red" size={14} />}
-                              </Text>
+                            {!isCorrectAnswer && (
+                              <IconX
+                                color="red"
+                                size={16}
+                                stroke={3}
+                                style={{ display: "inline-block", marginBottom: "-2px" }}
+                              />
                             )}
-                          </Flex>
-                        );
-                      })}
+                          </>
+                        ) : undefined}{" "}
+                        {i + 1}. {question.text}
+                      </Text>
+                      <Flex direction="column" gap="xs">
+                        {question.answers?.map((answer) => {
+                          const isCorrectAnswer = !!answer.correct;
+                          const isIncorrectSelect = !answer.correct && answer.selected;
+                          const isCorrect = !!answer.correct && !!answer.selected;
+                          const isIncorrect =
+                            (!answer.correct && answer.selected) || (!!answer.correct && !answer.selected);
+                          return (
+                            <Flex
+                              key={answer.id}
+                              component="label"
+                              align="center"
+                              gap="xs"
+                              c={
+                                final ? (isCorrectAnswer ? "green" : isIncorrectSelect ? "red" : undefined) : undefined
+                              }
+                              fw={final ? (isCorrectAnswer || isIncorrectSelect ? 600 : undefined) : undefined}
+                            >
+                              {isMultipleChoice ? (
+                                <Checkbox size="xs" value={answer.id} {...formMethods.register(fieldName)} />
+                              ) : (
+                                <Radio size="xs" value={answer.id} {...formMethods.register(fieldName)} />
+                              )}
+                              <span>{answer.text}</span>
+                              {!!final && (
+                                <Text span style={{ flexShrink: 0 }}>
+                                  {isCorrect && <IconCheck color="green" size={14} />}
+                                  {isIncorrect && <IconX color="red" size={14} />}
+                                </Text>
+                              )}
+                            </Flex>
+                          );
+                        })}
+                      </Flex>
+                      {!!final && (
+                        <Alert title={question.explanation} px="md" py="xs" styles={{ label: { fontWeight: 600 } }} />
+                      )}
+                      {!!errorMessage && <Alert color="red" px="md" py="xs" title={errorMessage} />}
                     </Flex>
-                    {!!final && (
-                      <Alert title={question.explanation} px="md" py="xs" styles={{ label: { fontWeight: 600 } }} />
-                    )}
-                    {!!errorMessage && <Alert color="red" px="md" py="xs" title={errorMessage} />}
-                  </Flex>
-                );
-              }}
-            />
-          );
-        })}
-        {!final ? (
-          <Button size="md" type="submit">
-            Submit
-          </Button>
-        ) : (
-          <Button size="md" type="button" onClick={handleReset}>
-            Reset
-          </Button>
-        )}
-      </Flex>
-    </Box>
+                  );
+                }}
+              />
+            );
+          })}
+          {!final ? (
+            <Button size="md" type="submit">
+              Submit
+            </Button>
+          ) : (
+            <Button size="md" type="button" onClick={handleReset}>
+              Reset
+            </Button>
+          )}
+        </Flex>
+      </Box>
+    </>
   );
 }
 

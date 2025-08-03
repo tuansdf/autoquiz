@@ -31,7 +31,7 @@ export const CommonLayout = (props: PropsWithChildren) => {
           </Button>
         )}
       </Flex>
-      <Box maw={800} mx="auto" pb="xl">
+      <Box maw={800} mx="auto" pb="xl" px="lg">
         {props.children}
       </Box>
     </>
