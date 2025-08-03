@@ -93,6 +93,9 @@ importers:
       drizzle-kit:
         specifier: ^0.31.4
         version: 0.31.4
+      fico-cli:
+        specifier: ^1.0.1
+        version: 1.0.1
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
@@ -2126,6 +2129,10 @@ packages:
     peerDependenciesMeta:
       picomatch:
         optional: true
+
+  fico-cli@1.0.1:
+    resolution: {integrity: sha512-wxE12qVghL9QL18jzYc0VPAgr/TFsXdwHwlLwnB6Nc+yt6XqwPR0H2syFkxJvFkln6WxvVnEvx0GpFayNqOSew==}
+    hasBin: true
 
   filelist@1.0.4:
     resolution: {integrity: sha512-w1cEuf3S+DrLCQL7ET6kz+gmlJdbq9J7yXCSjK/OZCPA+qEN1WyF4ZAf0YYJa4/shHJra2t/d/r8SV4Ji+x+8Q==}
@@ -5815,6 +5822,10 @@ snapshots:
   fdir@6.4.6(picomatch@4.0.3):
     optionalDependencies:
       picomatch: 4.0.3
+
+  fico-cli@1.0.1:
+    dependencies:
+      arg: 5.0.2
 
   filelist@1.0.4:
     dependencies:

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
+    "build": "react-router build && fico --input build --ext html --ext js --ext css --override true",
     "dev": "react-router dev",
     "preview": "vite preview",
     "typecheck": "react-router typegen && tsc"
@@ -39,6 +39,7 @@
     "@vitejs/plugin-legacy": "^7.1.0",
     "cross-env": "^10.0.0",
     "drizzle-kit": "^0.31.4",
+    "fico-cli": "^1.0.1",
     "postcss": "^8.5.6",
     "postcss-preset-env": "^10.2.4",
     "postcss-preset-mantine": "^1.18.0",
