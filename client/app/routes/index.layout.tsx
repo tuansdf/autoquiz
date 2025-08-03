@@ -5,7 +5,7 @@ import { Navigate, Outlet } from "react-router";
 
 export default function IndexLayout() {
   if (!getAuth()) {
-    return <Navigate to="/auth" />;
+    return <Navigate to="/auth" replace />;
   }
 
   return (
