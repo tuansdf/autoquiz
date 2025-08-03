@@ -5,15 +5,23 @@ import { logger } from "../../utils/logger.js";
 import { quizGenerator } from "./quiz-generator.js";
 import { MAX_CONTEXT_SIZE } from "./quiz.constant.js";
 import { quizRepository } from "./quiz.repository";
-import type { CreateQuizRequest, Quiz, QuizListItem } from "./quiz.type";
+import type { CreateQuizRequest, Quiz, QuizListItem, QuizPublic } from "./quiz.type";
 
 class QuizService {
   public async findOneById(id: string, userId: string): Promise<Quiz | null> {
     return quizRepository.findTopByIdAndCreatedBy(id, userId);
   }
 
+  public async findOnePublicById(id: string): Promise<QuizPublic | null> {
+    return quizRepository.findTopByIdAndIsPublic(id);
+  }
+
   public async findAllByUserId(userId: string): Promise<QuizListItem[]> {
     return quizRepository.findAllByCreatedBy(userId);
+  }
+
+  public async updateIsPublic(id: string, userId: string, value: boolean): Promise<void> {
+    return quizRepository.updateIsPublicByIdAndUserId(id, userId, value);
   }
 
   private async generateQuestions(request: Quiz, context: string) {

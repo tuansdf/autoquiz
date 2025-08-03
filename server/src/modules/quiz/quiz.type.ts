@@ -14,3 +14,9 @@ export type QuizListItem = MakeNullish<{
   createdAt: Date;
   generated: boolean;
 }>;
+
+export type QuizPublic = MakeNullish<{
+  id: string;
+  title: string;
+  questions: string;
+}>;

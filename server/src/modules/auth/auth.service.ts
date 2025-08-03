@@ -57,7 +57,7 @@ class AuthService {
 
   public async register(request: RegisterRequest): Promise<LoginResponse> {
     if (!(await remoteConfigs.isRegistrationEnabled())) {
-      throw new CustomException("Registration is disabled");
+      throw new CustomException("Registration is currently disabled.");
     }
     const usernameExists = await userRepository.existsByUsername(request.username);
     if (usernameExists) {
