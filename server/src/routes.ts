@@ -5,8 +5,8 @@ import { quizRouter } from "./modules/quiz/quiz.router.js";
 
 export const routes = new Hono();
 
-routes.get("/health", () => {
-  return new Response("OK");
+routes.get("/health", (c) => {
+  return c.text("OK");
 });
 routes.route("/auth", authRouter);
 routes.route("/configs", configRouter);
