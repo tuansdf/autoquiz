@@ -1,3 +1,4 @@
 import pino from "pino";
 
-export const logger = pino();
+const destination = pino.destination({ sync: false });
+export const logger = pino({}, destination);
