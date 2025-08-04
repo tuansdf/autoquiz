@@ -14,6 +14,25 @@ type FormValues = {
   questions: Question[];
 };
 
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
+const shuffleQuestions = (questions: Question[]): Question[] => {
+  const clone = structuredClone(questions);
+  return shuffleArray(
+    clone.map((q) => ({
+      ...q,
+      answers: q.answers ? shuffleArray(q.answers) : undefined,
+    })),
+  );
+};
+
 export default function QuizPage() {
   const [final, setFinal] = useState<Question[] | undefined>();
   const params = useParams<{ id?: string }>();
@@ -49,13 +68,12 @@ export default function QuizPage() {
   const handleReset = () => {
     setFinal(undefined);
     formMethods.clearErrors();
-    formMethods.reset({ questions });
+    formMethods.reset({ questions: shuffleQuestions(questions || []) });
   };
 
   useEffect(() => {
-    if (questions) {
-      formMethods.reset({ questions });
-    }
+    if (!questions) return;
+    formMethods.reset({ questions: shuffleQuestions(questions) });
   }, [questions]);
 
   if (dataQuery.isLoading) {
@@ -197,7 +215,7 @@ const PublicSwitch = (props: { checked: boolean }) => {
       checked={props.checked}
       label="Make this quiz shareable"
       onChange={(e) => handleSwitch(e.target.checked)}
-      mb="sm"
+      mb="md"
     />
   );
 };

@@ -122,7 +122,12 @@ const GenerateQuiz = () => {
 
       <Modal opened={isCreateOpen} onClose={closeModal} title="Generate quiz" fullScreen={isMobile}>
         <Box component="form" onSubmit={formMethods.handleSubmit(handleSubmit)}>
-          <Textarea label="Context" {...formMethods.register("context")} rows={10} />
+          <Textarea
+            label="Context"
+            {...formMethods.register("context", { required: { value: true, message: "Required" } })}
+            rows={10}
+            error={formMethods.formState.errors.context?.message}
+          />
           <Flex justify="flex-end">
             <Button type="submit" mt="sm">
               Submit
