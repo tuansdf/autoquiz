@@ -10,11 +10,11 @@ class ConfigRepository {
 
   public async existsByKey(key: string): Promise<boolean> {
     const result = await db
-      .select({ count: sql`1`.mapWith(Number) })
+      .select({ value: sql`1`.mapWith(Number) })
       .from(configs)
       .where(eq(configs.key, key))
       .limit(1);
-    return Boolean(result.length && result[0]);
+    return Boolean(result.length && result[0]?.value);
   }
 
   public async findTopByKey(key: string): Promise<Config | null> {

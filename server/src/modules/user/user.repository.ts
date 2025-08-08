@@ -6,10 +6,10 @@ import type { NewUser, User } from "./user.type";
 class UserRepository {
   public async existsAny(): Promise<boolean> {
     const result = await db
-      .select({ count: sql`1`.mapWith(Number) })
+      .select({ value: sql`1`.mapWith(Number) })
       .from(users)
       .limit(1);
-    return Boolean(result.length && result[0]);
+    return Boolean(result.length && result[0]?.value);
   }
 
   public async findTopById(id: string): Promise<User | null> {
@@ -26,11 +26,11 @@ class UserRepository {
 
   public async existsByUsername(username: string): Promise<boolean> {
     const result = await db
-      .select({ count: sql`1`.mapWith(Number) })
+      .select({ value: sql`1`.mapWith(Number) })
       .from(users)
       .where(eq(users.username, username))
       .limit(1);
-    return Boolean(result.length && result[0]);
+    return Boolean(result.length && result[0]?.value);
   }
 
   public async resetTokenValidity(userId: string): Promise<void> {
