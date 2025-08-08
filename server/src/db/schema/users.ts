@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { v7 } from "uuid";
 
 export const users = pgTable(
@@ -17,6 +17,12 @@ export const users = pgTable(
       precision: 3,
       mode: "date",
     }).defaultNow(),
+    loginFailedAttempts: integer("login_failed_attempts").default(sql`0`),
+    loginLockedUntil: timestamp("login_locked_until", {
+      withTimezone: true,
+      precision: 3,
+      mode: "date",
+    }),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       precision: 3,

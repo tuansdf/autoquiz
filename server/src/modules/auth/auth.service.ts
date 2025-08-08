@@ -48,10 +48,16 @@ class AuthService {
     if (!user) {
       throw new CustomException("Invalid credentials", 401);
     }
-    const isPasswordCorrect = await passwordEncoder.verify(request.password, user?.password || "");
-    if (!isPasswordCorrect) {
+    if (user.loginLockedUntil && dayjs().isBefore(dayjs(user.loginLockedUntil))) {
+      await passwordEncoder.encode("");
       throw new CustomException("Invalid credentials", 401);
     }
+    const isPasswordCorrect = await passwordEncoder.verify(request.password, user?.password || "");
+    if (!isPasswordCorrect) {
+      await userRepository.addFailedAttempts(user.id);
+      throw new CustomException("Invalid credentials", 401);
+    }
+    await userRepository.addSucceededAttempts(user.id);
     return this.createLoginResponse(user);
   }
 

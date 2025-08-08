@@ -38,6 +38,20 @@ class UserRepository {
     await db.update(users).set({ tokenValidFrom: now, updatedAt: now }).where(eq(users.id, userId));
   }
 
+  public async addFailedAttempts(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        loginFailedAttempts: sql`${users.loginFailedAttempts} + 1`,
+        loginLockedUntil: sql`case when ${users.loginFailedAttempts} >= 5 then now() + interval '15 minutes' else ${users.loginLockedUntil} end`,
+      })
+      .where(eq(users.id, userId));
+  }
+
+  public async addSucceededAttempts(userId: string): Promise<void> {
+    await db.update(users).set({ loginFailedAttempts: 0 }).where(eq(users.id, userId));
+  }
+
   public async insert(values: NewUser): Promise<User | null> {
     const result = await db.insert(users).values(values).returning();
     if (!result.length || !result[0]) return null;

@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { Env } from "../../env.js";
 import { logger } from "../../utils/logger";
+import { remoteConfigs } from "../config/remote-configs";
 
 const ai = new GoogleGenAI({ apiKey: Env.GEMINI_API_KEY });
 
@@ -66,12 +67,12 @@ Do not include any commentary, formatting guidance, or extra text—only return 
 class QuizGenerator {
   public async generateQuestions(context: string): Promise<Response | null> {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite",
+      model: (await remoteConfigs.getLLMModel()) || "gemini-2.5-flash-lite",
       contents: context,
       config: {
         responseMimeType: "application/json",
         responseSchema: responseSchemaJson,
-        systemInstruction,
+        systemInstruction: (await remoteConfigs.getLLMInstruction()) || systemInstruction,
         thinkingConfig: {
           thinkingBudget: 512,
         },
