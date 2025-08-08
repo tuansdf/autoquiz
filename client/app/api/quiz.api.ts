@@ -1,6 +1,6 @@
 import { apiAuth, apiPublic } from "@/api/instance.api.js";
 import type { GetQuizResponse, GetQuizzesResponse } from "@/type/quiz.type.js";
-import { getAuth } from "@/utils/auth.util.js";
+import { getSession } from "@/utils/auth.util.js";
 import { base64 } from "@/utils/base64.js";
 
 export const getQuizzes = async (): Promise<GetQuizzesResponse> => {
@@ -9,7 +9,7 @@ export const getQuizzes = async (): Promise<GetQuizzesResponse> => {
 };
 
 export const getQuiz = async (id?: string): Promise<GetQuizResponse> => {
-  const isAuth = !!getAuth();
+  const isAuth = !!getSession();
   let url = `api/quizzes/${id}`;
   if (!isAuth) {
     url = `api/quizzes/public/${id}`;

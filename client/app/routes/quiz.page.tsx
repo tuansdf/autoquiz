@@ -1,7 +1,7 @@
 import { getQuiz, updateQuizVisibility } from "@/api/quiz.api.js";
 import { ScreenLoading } from "@/components/screen-loading.js";
 import type { Question } from "@/type/quiz.type.js";
-import { getAuth } from "@/utils/auth.util.js";
+import { isAuth } from "@/utils/auth.util.js";
 import { handleHttpError } from "@/utils/common.util.js";
 import { Alert, Box, Button, Checkbox, Flex, Radio, Switch, Text, Title } from "@mantine/core";
 import { IconCheck, IconX } from "@tabler/icons-react";
@@ -208,7 +208,7 @@ const PublicSwitch = (props: { checked: boolean }) => {
     }
   };
 
-  if (!getAuth()) return null;
+  if (!isAuth()) return null;
 
   return (
     <Switch

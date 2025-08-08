@@ -1,5 +1,6 @@
 import type { LoginResponse, User } from "@/type/auth.type.js";
 import { notifications } from "@mantine/notifications";
+import dayjs from "dayjs";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
 
 export const handleLoginSuccess = (result: LoginResponse, navigateFn?: (url: string) => any) => {
@@ -27,7 +28,7 @@ interface AuthJwtPayload extends JwtPayload {
   admin?: boolean;
 }
 
-export const getAuth = (): User | null => {
+export const getSession = (): User | null => {
   const decoded = decodeAccessToken();
   if (!decoded) return null;
   return {
@@ -37,7 +38,19 @@ export const getAuth = (): User | null => {
   };
 };
 
+export const isAuth = (): boolean => {
+  const decoded = decodeRefreshToken();
+  if (!decoded) return false;
+  return !(dayjs().unix() > (decoded.exp || 0));
+};
+
 export const decodeAccessToken = (): AuthJwtPayload | null => {
+  const token = getAccessToken();
+  if (!token) return null;
+  return jwtDecode<AuthJwtPayload>(token);
+};
+
+export const decodeRefreshToken = (): AuthJwtPayload | null => {
   const token = getAccessToken();
   if (!token) return null;
   return jwtDecode<AuthJwtPayload>(token);

@@ -1,10 +1,10 @@
 import { CommonLayout } from "@/components/common-layout.js";
-import { getAuth } from "@/utils/auth.util.js";
+import { isAuth } from "@/utils/auth.util.js";
 import React from "react";
 import { Navigate, Outlet } from "react-router";
 
 export default function IndexLayout() {
-  if (!getAuth()) {
+  if (!isAuth()) {
     return <Navigate to="/auth" replace />;
   }
 

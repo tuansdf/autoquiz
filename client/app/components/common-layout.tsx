@@ -1,4 +1,4 @@
-import { getAuth, handleLogout } from "@/utils/auth.util.js";
+import { handleLogout, isAuth } from "@/utils/auth.util.js";
 import { Box, Button, Flex, Text } from "@mantine/core";
 import { IconLogin, IconLogout } from "@tabler/icons-react";
 import React, { type PropsWithChildren } from "react";
@@ -6,7 +6,6 @@ import { Link, useNavigate } from "react-router";
 
 export const CommonLayout = (props: PropsWithChildren) => {
   const navigate = useNavigate();
-  const isAuth = !!getAuth();
 
   return (
     <>
@@ -21,7 +20,7 @@ export const CommonLayout = (props: PropsWithChildren) => {
         >
           AutoQuiz
         </Text>
-        {isAuth ? (
+        {isAuth() ? (
           <Button leftSection={<IconLogout size={14} />} variant="default" onClick={() => handleLogout(navigate)}>
             Sign out
           </Button>

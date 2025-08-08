@@ -1,5 +1,5 @@
 import { login, register } from "@/api/auth.api.js";
-import { getAuth, handleLoginSuccess } from "@/utils/auth.util.js";
+import { handleLoginSuccess, isAuth } from "@/utils/auth.util.js";
 import { handleHttpError } from "@/utils/common.util.js";
 import {
   Anchor,
@@ -32,8 +32,8 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const formMethods = useForm<FormValues>();
 
-  if (getAuth()) {
-    return <Navigate to="/" />;
+  if (isAuth()) {
+    return <Navigate to="/" replace />;
   }
 
   const handleSubmit: SubmitHandler<FormValues> = async (data) => {
