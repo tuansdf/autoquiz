@@ -3,13 +3,14 @@ import type { CommonResponse } from "@/type/common.type.js";
 export type Quiz = {
   id?: string;
   title?: string;
+  ok?: boolean;
   createdAt?: string;
-  generated?: boolean;
 };
 
 export type QuizDetail = {
   id?: string;
   title?: string;
+  ok?: boolean;
   questions?: Question[];
   isPublic?: boolean;
   createdAt?: string;

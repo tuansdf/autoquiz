@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db/db";
 import { quizzes } from "../../db/schema/quizzes";
 import type { NewQuiz, Quiz, QuizListItem, QuizPublic } from "./quiz.type";
@@ -33,8 +33,8 @@ class QuizRepository {
       .select({
         id: quizzes.id,
         title: quizzes.title,
+        ok: quizzes.ok,
         createdAt: quizzes.createdAt,
-        generated: sql<boolean>`(${quizzes.questions} is not null)`,
       })
       .from(quizzes)
       .where(eq(quizzes.createdBy, userId))
@@ -54,7 +54,8 @@ class QuizRepository {
     return result[0];
   }
 
-  public async update(values: Quiz): Promise<Quiz | null> {
+  public async update(values: NewQuiz): Promise<Quiz | null> {
+    if (!values.id) return null;
     const result = await db.update(quizzes).set(values).where(eq(quizzes.id, values.id)).returning();
     if (!result.length || !result[0]) return null;
     return result[0];

@@ -7,7 +7,7 @@ class RemoteConfigs {
   }
 
   public async getLLMModel(): Promise<string> {
-    return configService.findValueByKey("LLM_MODEL");
+    return (await configService.findValueByKey("LLM_MODEL")) || "gemini-2.5-flash-lite";
   }
 
   public async getLLMInstruction(): Promise<string> {

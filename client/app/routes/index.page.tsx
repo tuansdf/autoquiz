@@ -15,6 +15,7 @@ type FormValues = {
   context: string;
 };
 
+const MAX_LENGTH = 100000;
 const INTERVAL_MS = 1000 * 5;
 const REFRESH_RANGE_MS = 1000 * 60 * 60;
 
@@ -30,7 +31,11 @@ export default function IndexPage() {
 
   const quizzesGroupedByDate = useMemo(() => {
     const refreshFrom = dayjs().subtract(REFRESH_RANGE_MS, "millisecond").unix();
-    setNeedRefresh(!!quizzes?.some((item) => !item.generated && dayjs(item.createdAt).unix() > refreshFrom));
+    setNeedRefresh(
+      !!quizzes?.some(
+        (item) => (item.ok === null || item.ok === undefined) && dayjs(item.createdAt).unix() > refreshFrom,
+      ),
+    );
     return quizzes?.reduce(
       (acc, cur) => {
         const date = dayjs(cur.createdAt).format("DD/MM/YYYY");
@@ -61,13 +66,13 @@ export default function IndexPage() {
                   <Text fw={600}>{date}</Text>
                   <Flex direction="column" gap="sm">
                     {quizzesGroupedByDate[date].map((quiz) => {
-                      const generated = !!quiz.generated;
+                      const ok = quiz.ok;
                       return (
                         <Button
                           key={quiz.id}
-                          component={generated ? Link : undefined}
-                          to={generated ? `/quizzes/${quiz.id}` : ""}
-                          disabled={!generated}
+                          component={ok ? Link : undefined}
+                          to={ok ? `/quizzes/${quiz.id}` : ""}
+                          disabled={!ok}
                           variant="default"
                           size="lg"
                           px="md"
@@ -75,7 +80,7 @@ export default function IndexPage() {
                             inner: { justifyContent: "flex-start" },
                           }}
                         >
-                          <Text truncate="end">{generated ? quiz.title : "Processing..."}</Text>
+                          <Text truncate="end">{ok ? quiz.title : ok === false ? "Failed" : "Processing..."}</Text>
                         </Button>
                       );
                     })}
@@ -124,7 +129,10 @@ const GenerateQuiz = () => {
         <Box component="form" onSubmit={formMethods.handleSubmit(handleSubmit)}>
           <Textarea
             label="Context"
-            {...formMethods.register("context", { required: { value: true, message: "Required" } })}
+            {...formMethods.register("context", {
+              required: { value: true, message: "Required" },
+              maxLength: { value: MAX_LENGTH, message: `Over ${MAX_LENGTH} characters` },
+            })}
             rows={10}
             error={formMethods.formState.errors.context?.message}
           />

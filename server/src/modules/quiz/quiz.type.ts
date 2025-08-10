@@ -11,8 +11,8 @@ export type CreateQuizRequest = {
 export type QuizListItem = MakeNullish<{
   id: string;
   title: string;
+  ok: boolean;
   createdAt: Date;
-  generated: boolean;
 }>;
 
 export type QuizPublic = MakeNullish<{

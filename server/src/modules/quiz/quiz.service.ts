@@ -1,9 +1,8 @@
 import { CustomException } from "../../custom-exception.js";
 import { base64 } from "../../utils/base64.js";
 import { commonUtils } from "../../utils/common.util.js";
-import { logger } from "../../utils/logger.js";
 import { quizGenerator } from "./quiz-generator.js";
-import { MAX_CONTEXT_SIZE } from "./quiz.constant.js";
+import { DEFAULT_QUESTIONS, MAX_CONTEXT_SIZE, MAX_QUESTIONS } from "./quiz.constant.js";
 import { quizRepository } from "./quiz.repository";
 import type { CreateQuizRequest, Quiz, QuizListItem, QuizPublic } from "./quiz.type";
 
@@ -24,16 +23,33 @@ class QuizService {
     return quizRepository.updateIsPublicByIdAndUserId(id, userId, value);
   }
 
-  private async generateQuestions(request: Quiz, context: string) {
-    const generated = await quizGenerator.generateQuestions(context);
-    if (!generated) {
-      logger.error("Could not generate question " + request.id);
-      return;
+  private async generateQuestions(quizId: string, request: CreateQuizRequest) {
+    let ok = false;
+    let title = "";
+    let questions: any = null;
+    const metadata = await quizGenerator.generateMetadata(request.context);
+    if (metadata?.ok) {
+      title = metadata.title;
+      let numberOfQuestions = metadata.numberOfQuestions || 0;
+      if (numberOfQuestions <= 1) {
+        numberOfQuestions = DEFAULT_QUESTIONS;
+      }
+      if (numberOfQuestions > MAX_QUESTIONS) {
+        numberOfQuestions = MAX_QUESTIONS;
+      }
+      const response = await quizGenerator.generateQuestions(request.context, numberOfQuestions, []);
+      if (response?.questions) {
+        ok = true;
+        questions = response?.questions;
+      }
     }
-    request.title = generated.title;
-    request.questions = base64.encode(JSON.stringify(generated.questions), { compression: true });
-    request.updatedAt = new Date();
-    await quizRepository.update(request);
+    await quizRepository.update({
+      id: quizId,
+      title,
+      ok,
+      questions: base64.encode(JSON.stringify(questions), { compression: true }),
+      updatedAt: new Date(),
+    });
   }
 
   public async create(request: CreateQuizRequest, userId: string): Promise<Quiz> {
@@ -46,7 +62,8 @@ class QuizService {
       contextHash: commonUtils.sha1(request.context),
       createdBy: userId,
     });
-    this.generateQuestions(result!, context);
+    request.context = context;
+    this.generateQuestions(result?.id!, request);
     return result!;
   }
 }

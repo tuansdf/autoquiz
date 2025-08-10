@@ -11,6 +11,7 @@ export const quizzes = pgTable(
     context: text("context"),
     contextHash: text("context_hash"),
     title: text("title"),
+    ok: boolean("ok"),
     questions: text("questions"),
     isPublic: boolean("is_public").default(sql`false`),
     createdBy: uuid("created_by"),
