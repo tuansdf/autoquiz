@@ -141,6 +141,14 @@ class QuizGenerator {
             role: "user",
             parts: [
               {
+                text: `previous questions: ${JSON.stringify(previousQuestions)}`,
+              },
+            ],
+          },
+          {
+            role: "user",
+            parts: [
+              {
                 text: `generate exactly ${numberOfQuestions} questions`,
               },
             ],

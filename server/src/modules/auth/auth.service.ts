@@ -92,7 +92,7 @@ class AuthService {
       throw new CustomException("Invalid credentials", 401);
     }
     let user = await userRepository.findTopById(jwtPayload.sub || "");
-    if (!user) {
+    if (!user?.isEnabled) {
       throw new CustomException("Invalid credentials", 401);
     }
     if (!jwtPayload.iat) {
