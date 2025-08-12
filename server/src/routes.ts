@@ -1,11 +1,13 @@
 import { Hono } from "hono";
+import { authenticate } from "./modules/auth/auth.middleware";
 import { authRouter } from "./modules/auth/auth.router";
 import { configRouter } from "./modules/config/config.router";
 import { quizRouter } from "./modules/quiz/quiz.router.js";
 
 export const routes = new Hono();
 
-routes.get("/health", (c) => {
+routes.get("/health", authenticate(), async (c) => {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   return c.text("OK");
 });
 routes.route("/auth", authRouter);

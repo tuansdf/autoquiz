@@ -1,7 +1,10 @@
+import { refreshToken } from "@/api/auth.api.js";
 import type { LoginResponse, User } from "@/type/auth.type.js";
 import { notifications } from "@mantine/notifications";
 import dayjs from "dayjs";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
+
+const EXPIRED_SECONDS_OFFSET = 10;
 
 export const handleLoginSuccess = (result: LoginResponse, navigateFn?: (url: string) => any) => {
   localStorage.setItem("access_token", result.data?.accessToken || "");
@@ -51,7 +54,7 @@ export const decodeAccessToken = (): AuthJwtPayload | null => {
 };
 
 export const decodeRefreshToken = (): AuthJwtPayload | null => {
-  const token = getAccessToken();
+  const token = getRefreshToken();
   if (!token) return null;
   return jwtDecode<AuthJwtPayload>(token);
 };
@@ -62,4 +65,31 @@ export const getAccessToken = () => {
 
 export const getRefreshToken = () => {
   return localStorage.getItem("refresh_token");
+};
+
+let accessTokenPromise: Promise<string | null | undefined> | undefined = undefined;
+
+export const getValidAccessToken = async (): Promise<string | null | undefined> => {
+  if (!accessTokenPromise) {
+    accessTokenPromise = executeGetValidAccessToken().finally(() => (accessTokenPromise = undefined));
+  }
+  return accessTokenPromise;
+};
+
+export const executeGetValidAccessToken = async (): Promise<string | null | undefined> => {
+  const accessToken = decodeAccessToken();
+  if (!accessToken) {
+    return null;
+  }
+  const expired = dayjs().unix() > (accessToken?.exp || 0) - EXPIRED_SECONDS_OFFSET;
+  if (!expired) {
+    return getAccessToken();
+  }
+  const refreshJwt = getRefreshToken();
+  if (!refreshJwt) {
+    return null;
+  }
+  const result = await refreshToken({ token: refreshJwt });
+  handleLoginSuccess(result);
+  return result.data?.accessToken;
 };

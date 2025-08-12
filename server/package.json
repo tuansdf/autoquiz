@@ -11,13 +11,14 @@
   },
   "dependencies": {
     "@google/genai": "^1.11.0",
+    "@hono/oauth-providers": "^0.8.4",
     "@scure/base": "^1.2.6",
-    "bcryptjs": "^3.0.2",
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.4",
     "hono": "^4.8.10",
     "jose": "^6.0.12",
+    "nanoid": "^5.1.5",
     "pako": "^2.1.0",
     "pg": "^8.16.3",
     "pino": "^9.7.0",
@@ -25,7 +26,6 @@
     "zod": "^4.0.14"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^3.0.0",
     "@types/bun": "^1.2.19",
     "@types/node": "^24.1.0",
     "@types/pako": "^2.0.3",

@@ -3,16 +3,19 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
 import { v4 } from "uuid";
-import { ZodError } from "zod";
-import { CustomException } from "./custom-exception";
 import { Env } from "./env";
 import { routes } from "./routes";
+import { exceptionUtils } from "./utils/exception.util";
 import { logger } from "./utils/logger";
 
 const app = new Hono();
 
-app.use(cors());
-app.use(secureHeaders());
+app.use(
+  cors({
+    origin: Env.CLIENT_BASE_URL,
+  }),
+);
+app.use(secureHeaders({ crossOriginOpenerPolicy: false }));
 app.use(async (c, next) => {
   const requestId = v4();
   c.set("requestId", requestId);
@@ -32,19 +35,8 @@ app.notFound(() => {
 app.onError((err, c) => {
   const requestId = c.var.requestId;
   logger.error({ requestId, error: err });
-  let errorMessage = "Something Went Wrong";
-  let status = 500;
-  if (err instanceof CustomException) {
-    status = err.status || 400;
-    if (err.message) errorMessage = err.message;
-  }
-  if (err instanceof ZodError) {
-    status = 400;
-    errorMessage = err.issues
-      .map((issue) => (issue.path?.[0] ? String(issue.path[0]) + ": " : "") + issue.message)
-      .join("\n");
-  }
-  return Response.json({ message: errorMessage }, { status });
+  const response = exceptionUtils.toResponse(err);
+  return Response.json({ message: response.message }, { status: response.status });
 });
 
 const port = Env.PORT || 5000;

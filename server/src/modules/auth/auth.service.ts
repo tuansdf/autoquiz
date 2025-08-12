@@ -1,22 +1,12 @@
 import dayjs from "dayjs";
-import { v4 } from "uuid";
 import { CustomException } from "../../custom-exception";
 import { Env } from "../../env";
 import { jwt } from "../../utils/jwt";
-import { passwordEncoder } from "../../utils/password-encoder";
-import { remoteConfigs } from "../config/remote-configs.js";
+import { remoteConfigs } from "../config/remote-configs";
 import { userRepository } from "../user/user.repository";
 import type { User } from "../user/user.type";
 import { JWT_TYPE_ACCESS, JWT_TYPE_REFRESH } from "./auth.constant";
-import type {
-  ChangePasswordRequest,
-  LoginRequest,
-  LoginResponse,
-  RefreshTokenRequest,
-  RegisterRequest,
-  ResetPasswordRequest,
-  ResetPasswordResponse,
-} from "./auth.type";
+import type { LoginResponse, RefreshTokenRequest } from "./auth.type";
 
 class AuthService {
   private async createLoginResponse(user: User) {
@@ -43,41 +33,26 @@ class AuthService {
     };
   }
 
-  public async login(request: LoginRequest): Promise<LoginResponse> {
-    const user = await userRepository.findTopByUsername(request.username);
+  public async loginByUsername(username: string): Promise<LoginResponse> {
+    if (!username) {
+      throw new CustomException("Invalid credentials", 401);
+    }
+    let user = await userRepository.findTopByUsername(username);
+    if (!user?.isEnabled) {
+      throw new CustomException("Your account is locked", 400);
+    }
     if (!user) {
-      throw new CustomException("Invalid credentials", 401);
+      if (!(await remoteConfigs.isRegistrationEnabled())) {
+        throw new CustomException("Registration is currently disabled.", 400);
+      }
+      const isFirstUser = !(await userRepository.existsAny());
+      user = await userRepository.insert({
+        username: username,
+        isAdmin: isFirstUser,
+        isEnabled: true,
+        tokenValidFrom: new Date(),
+      });
     }
-    if (user.loginLockedUntil && dayjs().isBefore(dayjs(user.loginLockedUntil))) {
-      await passwordEncoder.encode("");
-      throw new CustomException("Invalid credentials", 401);
-    }
-    const isPasswordCorrect = await passwordEncoder.verify(request.password, user?.password || "");
-    if (!isPasswordCorrect) {
-      await userRepository.addFailedAttempts(user.id);
-      throw new CustomException("Invalid credentials", 401);
-    }
-    await userRepository.addSucceededAttempts(user.id);
-    return this.createLoginResponse(user);
-  }
-
-  public async register(request: RegisterRequest): Promise<LoginResponse> {
-    if (!(await remoteConfigs.isRegistrationEnabled())) {
-      throw new CustomException("Registration is currently disabled.");
-    }
-    const usernameExists = await userRepository.existsByUsername(request.username);
-    if (usernameExists) {
-      throw new CustomException("Username already exists");
-    }
-    const isFirstUser = !(await userRepository.existsAny());
-    const hashedPassword = await passwordEncoder.encode(request.password);
-    const user = await userRepository.insert({
-      username: request.username,
-      password: hashedPassword,
-      isAdmin: isFirstUser,
-      isEnabled: true,
-      tokenValidFrom: new Date(),
-    });
     return this.createLoginResponse(user!);
   }
 
@@ -92,42 +67,19 @@ class AuthService {
       throw new CustomException("Invalid credentials", 401);
     }
     let user = await userRepository.findTopById(jwtPayload.sub || "");
-    if (!user?.isEnabled) {
+    if (!user) {
       throw new CustomException("Invalid credentials", 401);
     }
-    if (!jwtPayload.iat) {
+    if (!jwtPayload.iat || jwtPayload.typ !== JWT_TYPE_REFRESH) {
       throw new CustomException("Invalid credentials", 401);
     }
     if (user.tokenValidFrom && jwtPayload.iat < dayjs(user.tokenValidFrom).unix()) {
       throw new CustomException("Invalid credentials", 401);
     }
+    if (!user.isEnabled) {
+      throw new CustomException("Your account is locked", 400);
+    }
     return this.createLoginResponse(user!);
-  }
-
-  public async resetPassword(request: ResetPasswordRequest): Promise<ResetPasswordResponse> {
-    let user = await userRepository.findTopByUsername(request.username);
-    if (!user) {
-      throw new CustomException("User not found", 404);
-    }
-    const generatedPassword = v4();
-    user.password = await passwordEncoder.encode(generatedPassword);
-    await userRepository.update(user);
-    return {
-      password: generatedPassword,
-    };
-  }
-
-  public async changePassword(request: ChangePasswordRequest, userId: string): Promise<void> {
-    let user = await userRepository.findTopById(userId);
-    if (!user) {
-      throw new CustomException("Invalid credentials", 401);
-    }
-    const isPasswordCorrect = await passwordEncoder.verify(request.oldPassword, user?.password || "");
-    if (!isPasswordCorrect) {
-      throw new CustomException("Invalid credentials", 401);
-    }
-    user.password = await passwordEncoder.encode(request.newPassword);
-    await userRepository.update(user);
   }
 }
 

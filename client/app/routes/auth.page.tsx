@@ -1,107 +1,76 @@
-import { login, register } from "@/api/auth.api.js";
+import type { LoginResponse } from "@/type/auth.type.js";
 import { handleLoginSuccess, isAuth } from "@/utils/auth.util.js";
-import { handleHttpError } from "@/utils/common.util.js";
-import {
-  Anchor,
-  Button,
-  Container,
-  Flex,
-  LoadingOverlay,
-  Paper,
-  PasswordInput,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
-import { useState } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { Button, Flex, Title } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { IconBrandGoogleFilled } from "@tabler/icons-react";
+import { useRef } from "react";
 import { Navigate, useNavigate } from "react-router";
 
-export const meta = () => {
-  return [{ title: "Sign In" }];
-};
-
-type FormValues = {
-  username: string;
-  password: string;
-};
-
 export default function AuthPage() {
+  const loginRef = useRef<any>(null);
   const navigate = useNavigate();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const formMethods = useForm<FormValues>();
 
   if (isAuth()) {
     return <Navigate to="/" replace />;
   }
 
-  const handleSubmit: SubmitHandler<FormValues> = async (data) => {
-    try {
-      setIsLoading(true);
-      const result = isSignUp ? await register(data) : await login(data);
-      handleLoginSuccess(result, navigate);
-    } catch (e) {
-      handleHttpError(e);
-    } finally {
-      setIsLoading(false);
+  const handleLoginMessage = (popup?: Window | null) => (event: MessageEvent) => {
+    if (event.origin !== import.meta.env.VITE_SERVER_BASE_URL) {
+      return;
     }
+    if (popup) {
+      popup.close();
+    }
+    const response = event.data as LoginResponse;
+    if (!response.data) {
+      notifications.show({
+        message: response.message || "Something Went Wrong",
+        withCloseButton: true,
+        color: "red",
+        style: { whiteSpace: "pre-line" },
+      });
+      return;
+    }
+    handleLoginSuccess(response, navigate);
+  };
+
+  const handleLogin = async () => {
+    window.removeEventListener("message", loginRef.current);
+    const popup = window.open(`${import.meta.env.VITE_SERVER_BASE_URL}/api/auth/google`, "_blank");
+    if (!popup) {
+      notifications.show({
+        message: "Please enable pop-ups to continue",
+        withCloseButton: true,
+        color: "red",
+        style: { whiteSpace: "pre-line" },
+      });
+      return;
+    }
+    loginRef.current = handleLoginMessage(popup);
+    window.addEventListener("message", loginRef.current, { once: true });
   };
 
   return (
-    <Flex pos="relative" h="100svh" justify="center" align="center">
-      <LoadingOverlay visible={isLoading} />
+    <>
+      <title>Sign In</title>
+      <Flex pos="relative" h="100svh" justify="center" align="center">
+        <Flex maw={420} w="100%" align="center" justify="center" direction="column">
+          <Title ta="center" fz={28}>
+            Welcome back!
+          </Title>
 
-      <Container size={420} w="100%">
-        <Title ta="center" fz={40}>
-          Welcome back!
-        </Title>
-
-        {isSignUp ? (
-          <Text ta="center" fz="sm">
-            Have an account?{" "}
-            <Anchor component="span" role="button" onClick={() => setIsSignUp(false)} fz="sm">
-              Sign in
-            </Anchor>
-          </Text>
-        ) : (
-          <Text ta="center" fz="sm">
-            Don't have an account yet?{" "}
-            <Anchor component="span" role="button" onClick={() => setIsSignUp(true)} fz="sm">
-              Sign up
-            </Anchor>
-          </Text>
-        )}
-
-        <Paper
-          component="form"
-          withBorder
-          shadow="sm"
-          p={24}
-          mt="xl"
-          radius="md"
-          onSubmit={formMethods.handleSubmit(handleSubmit)}
-        >
-          <TextInput
-            label="Username"
-            placeholder="Your username"
-            required
-            radius="md"
-            {...formMethods.register("username")}
-          />
-          <PasswordInput
-            label="Password"
-            placeholder="Your password"
-            required
+          <Button
+            size="md"
             mt="md"
+            variant="outline"
             radius="md"
-            {...formMethods.register("password")}
-          />
-          <Button fullWidth mt="xl" radius="md" type="submit">
-            {isSignUp ? "Sign up" : "Sign in"}
+            onClick={handleLogin}
+            leftSection={<IconBrandGoogleFilled />}
+          >
+            Sign in with Google
           </Button>
-        </Paper>
-      </Container>
-    </Flex>
+        </Flex>
+      </Flex>
+    </>
   );
 }

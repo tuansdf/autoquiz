@@ -24,32 +24,9 @@ class UserRepository {
     return result[0];
   }
 
-  public async existsByUsername(username: string): Promise<boolean> {
-    const result = await db
-      .select({ value: sql`1`.mapWith(Number) })
-      .from(users)
-      .where(eq(users.username, username))
-      .limit(1);
-    return Boolean(result.length && result[0]?.value);
-  }
-
   public async resetTokenValidity(userId: string): Promise<void> {
     const now = new Date();
     await db.update(users).set({ tokenValidFrom: now, updatedAt: now }).where(eq(users.id, userId));
-  }
-
-  public async addFailedAttempts(userId: string): Promise<void> {
-    await db
-      .update(users)
-      .set({
-        loginFailedAttempts: sql`${users.loginFailedAttempts} + 1`,
-        loginLockedUntil: sql`case when ${users.loginFailedAttempts} >= 5 then now() + interval '15 minutes' else ${users.loginLockedUntil} end`,
-      })
-      .where(eq(users.id, userId));
-  }
-
-  public async addSucceededAttempts(userId: string): Promise<void> {
-    await db.update(users).set({ loginFailedAttempts: 0 }).where(eq(users.id, userId));
   }
 
   public async insert(values: NewUser): Promise<User | null> {

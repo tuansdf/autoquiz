@@ -2,26 +2,6 @@
 
 GET {{base_url}}/api/health
 
-### Login
-
-POST {{base_url}}/api/auth/login
-Content-Type: application/json
-
-{
-  "username": "user1",
-  "password": "passworddddd"
-}
-
-### Register
-
-POST {{base_url}}/api/auth/register
-Content-Type: application/json
-
-{
-  "username": "user1",
-  "password": "passworddddd"
-}
-
 ### Refresh token
 
 POST {{base_url}}/api/auth/token/refresh
@@ -42,24 +22,3 @@ Authorization: Bearer {{access_token}}
 POST {{base_url}}/api/auth/token/invalidate
 Content-Type: application/json
 Authorization: Bearer {{access_token}}
-
-### Reset password
-
-POST {{base_url}}/api/auth/password/reset
-Content-Type: application/json
-Authorization: Bearer {{access_token}}
-
-{
-  "username": ""
-}
-
-### Change password
-
-POST {{base_url}}/api/auth/password/change
-Content-Type: application/json
-Authorization: Bearer {{access_token}}
-
-{
-  "oldPassword": "",
-  "newPassword": ""
-}

@@ -7,6 +7,10 @@ const schema = z.object({
   JWT_ACCESS_LIFETIME: z.coerce.number().min(1),
   JWT_REFRESH_LIFETIME: z.coerce.number().min(1),
   GEMINI_API_KEY: z.coerce.string().min(1),
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
+  GOOGLE_REDIRECT_URI: z.url().min(1),
+  CLIENT_BASE_URL: z.string().min(1),
 });
 
 const parsed = schema.safeParse(process.env);
