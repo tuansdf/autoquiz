@@ -1,12 +1,12 @@
 import type { MakeNullish } from "../../types";
 
 export type LoginRequest = {
-  username: string;
+  email: string;
   password: string;
 };
 
 export type RegisterRequest = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -20,7 +20,7 @@ export type RefreshTokenRequest = {
 };
 
 export type ResetPasswordRequest = {
-  username: string;
+  email: string;
 };
 
 export type ResetPasswordResponse = MakeNullish<{
@@ -30,4 +30,9 @@ export type ResetPasswordResponse = MakeNullish<{
 export type ChangePasswordRequest = {
   oldPassword: string;
   newPassword: string;
+};
+
+export type VerifyAccountRequest = {
+  email: string;
+  code: string;
 };

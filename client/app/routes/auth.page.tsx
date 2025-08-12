@@ -22,7 +22,7 @@ export const meta = () => {
 };
 
 type FormValues = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -82,13 +82,7 @@ export default function AuthPage() {
           radius="md"
           onSubmit={formMethods.handleSubmit(handleSubmit)}
         >
-          <TextInput
-            label="Username"
-            placeholder="Your username"
-            required
-            radius="md"
-            {...formMethods.register("username")}
-          />
+          <TextInput label="Email" placeholder="Your email" required radius="md" {...formMethods.register("email")} />
           <PasswordInput
             label="Password"
             placeholder="Your password"

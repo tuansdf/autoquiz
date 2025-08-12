@@ -16,6 +16,7 @@ import type {
   RegisterRequest,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  VerifyAccountRequest,
 } from "./auth.type";
 
 class AuthService {
@@ -26,7 +27,7 @@ class AuthService {
       nbf: now.unix(),
       exp: now.add(Env.JWT_ACCESS_LIFETIME, "second").unix(),
       sub: user.id,
-      username: user.username,
+      email: user.email,
       admin: user.isAdmin,
       typ: JWT_TYPE_ACCESS,
     });
@@ -44,7 +45,7 @@ class AuthService {
   }
 
   public async login(request: LoginRequest): Promise<LoginResponse> {
-    const user = await userRepository.findTopByUsername(request.username);
+    const user = await userRepository.findTopByEmail(request.email);
     if (!user) {
       throw new CustomException("Invalid credentials", 401);
     }
@@ -57,6 +58,9 @@ class AuthService {
       await userRepository.addFailedAttempts(user.id);
       throw new CustomException("Invalid credentials", 401);
     }
+    if (!user.isEnabled) {
+      throw new CustomException("Your account is locked", 401);
+    }
     await userRepository.addSucceededAttempts(user.id);
     return this.createLoginResponse(user);
   }
@@ -65,17 +69,25 @@ class AuthService {
     if (!(await remoteConfigs.isRegistrationEnabled())) {
       throw new CustomException("Registration is currently disabled.");
     }
-    const usernameExists = await userRepository.existsByUsername(request.username);
-    if (usernameExists) {
-      throw new CustomException("Username already exists");
+    const allowedDomains = await remoteConfigs.getAllowedEmailDomains();
+    const emailDomain = request.email.substring(request.email.indexOf("@") + 1);
+    if (allowedDomains.length && !allowedDomains.includes(emailDomain)) {
+      throw new CustomException(
+        `Please enter an email address from one of the allowed domains: ${allowedDomains.join(", ")}`,
+      );
+    }
+    const emailExists = await userRepository.existsByEmail(request.email);
+    if (emailExists) {
+      throw new CustomException("Email already exists");
     }
     const isFirstUser = !(await userRepository.existsAny());
     const hashedPassword = await passwordEncoder.encode(request.password);
     const user = await userRepository.insert({
-      username: request.username,
+      email: request.email,
       password: hashedPassword,
       isAdmin: isFirstUser,
       isEnabled: true,
+      verificationCode: v4(),
       tokenValidFrom: new Date(),
     });
     return this.createLoginResponse(user!);
@@ -105,7 +117,7 @@ class AuthService {
   }
 
   public async resetPassword(request: ResetPasswordRequest): Promise<ResetPasswordResponse> {
-    let user = await userRepository.findTopByUsername(request.username);
+    let user = await userRepository.findTopByEmail(request.email);
     if (!user) {
       throw new CustomException("User not found", 404);
     }
@@ -115,6 +127,20 @@ class AuthService {
     return {
       password: generatedPassword,
     };
+  }
+
+  public async verifyAccount(request: VerifyAccountRequest) {
+    let user = await userRepository.findTopByEmail(request.email);
+    if (!user) {
+      throw new CustomException("Invalid credentials", 401);
+    }
+    if (user.isEnabled) return;
+    if (user.verificationCode !== request.code) {
+      throw new CustomException("Invalid credentials", 401);
+    }
+    user.verificationCode = "";
+    user.isEnabled = true;
+    await userRepository.update(user);
   }
 
   public async changePassword(request: ChangePasswordRequest, userId: string): Promise<void> {

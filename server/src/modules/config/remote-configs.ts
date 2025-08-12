@@ -6,6 +6,12 @@ class RemoteConfigs {
     return result === "true";
   }
 
+  public async getAllowedEmailDomains(): Promise<string[]> {
+    const result = await configService.findValueByKey("ALLOWED_EMAIL_DOMAINS");
+    if (!result) return [];
+    return result.split(";");
+  }
+
   public async getLLMModel(): Promise<string> {
     return (await configService.findValueByKey("LLM_MODEL")) || "gemini-2.5-flash-lite";
   }

@@ -7,11 +7,11 @@ import type {
   ResetPasswordRequest,
 } from "./auth.type";
 
-const usernameSchema = z.string().check(z.minLength(3), z.maxLength(40), z.trim());
+const emailSchema = z.email().check(z.minLength(3), z.maxLength(255), z.trim());
 const passwordSchema = z.string().check(z.minLength(12), z.maxLength(40));
 
 const loginSchema = z.object({
-  username: usernameSchema,
+  email: emailSchema,
   password: passwordSchema,
 });
 
@@ -20,7 +20,7 @@ const refreshTokenSchema = z.object({
 });
 
 const resetPasswordSchema = z.object({
-  username: usernameSchema,
+  email: emailSchema,
 });
 
 const changePasswordSchema = z.object({

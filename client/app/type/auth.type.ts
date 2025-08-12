@@ -1,7 +1,7 @@
 import type { CommonResponse } from "@/type/common.type.js";
 
 export type LoginRequest = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -12,6 +12,6 @@ export type LoginResponse = CommonResponse<{
 
 export type User = {
   userId?: string;
-  username?: string;
+  email?: string;
   isAdmin?: boolean;
 };

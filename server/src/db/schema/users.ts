@@ -8,10 +8,11 @@ export const users = pgTable(
     id: uuid()
       .primaryKey()
       .$default(() => v7()),
-    username: text("username").unique().notNull(),
+    email: text("email").unique().notNull(),
     password: text("password"),
     isAdmin: boolean("is_admin").default(sql`false`),
-    isEnabled: boolean("is_enabled").default(sql`true`),
+    isEnabled: boolean("is_enabled").default(sql`false`),
+    verificationCode: text("verification_code"),
     tokenValidFrom: timestamp("token_valid_from", {
       withTimezone: true,
       precision: 3,
@@ -36,5 +37,5 @@ export const users = pgTable(
       .defaultNow()
       .$onUpdateFn(() => new Date()),
   },
-  (table) => [uniqueIndex("username_idx").on(table.username)],
+  (table) => [uniqueIndex("email_idx").on(table.email)],
 );

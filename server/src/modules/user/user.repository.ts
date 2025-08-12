@@ -18,17 +18,17 @@ class UserRepository {
     return result[0];
   }
 
-  public async findTopByUsername(username: string): Promise<User | null> {
-    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+  public async findTopByEmail(email: string): Promise<User | null> {
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!result.length || !result[0]) return null;
     return result[0];
   }
 
-  public async existsByUsername(username: string): Promise<boolean> {
+  public async existsByEmail(email: string): Promise<boolean> {
     const result = await db
       .select({ value: sql`1`.mapWith(Number) })
       .from(users)
-      .where(eq(users.username, username))
+      .where(eq(users.email, email))
       .limit(1);
     return Boolean(result.length && result[0]?.value);
   }

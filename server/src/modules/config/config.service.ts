@@ -2,8 +2,6 @@ import { CustomException } from "../../custom-exception";
 import { configRepository } from "./config.repository";
 import type { Config, NewConfig } from "./config.type";
 
-const cache = new Map<string, string>();
-
 class ConfigService {
   public async findTopByKey(key: string): Promise<Config | null> {
     return configRepository.findTopByKey(key);
@@ -17,29 +15,17 @@ class ConfigService {
     if (await configRepository.existsByKey(request.key)) {
       throw new CustomException("Key existed");
     }
-    const result = await configRepository.insert(request);
-    if (result) {
-      cache.set(result.key, result.value || "");
-    }
-    return result;
+    return await configRepository.insert(request);
   }
 
   public async update(request: Config): Promise<Config | null> {
-    const result = await configRepository.update(request);
-    if (result) {
-      cache.set(result.key, result.value || "");
-    }
-    return result;
+    return await configRepository.update(request);
   }
 
   public async findValueByKey(key: string): Promise<string> {
     if (!key) return "";
-    const cached = cache.get(key);
-    if (typeof cached === "string") return cached;
     const result = await configRepository.findTopByKey(key);
-    if (!result) return "";
-    cache.set(key, result.value || "");
-    return result.value || "";
+    return result?.value || "";
   }
 }
 
