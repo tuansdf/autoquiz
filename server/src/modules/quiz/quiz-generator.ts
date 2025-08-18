@@ -1,24 +1,24 @@
 import { GoogleGenAI } from "@google/genai";
-import { v4 } from "uuid";
 import { z } from "zod";
 import { Env } from "../../env.js";
-import { logger } from "../../utils/logger";
+import type { MakeNullish } from "../../types";
 import { remoteConfigs } from "../config/remote-configs";
 
 const ai = new GoogleGenAI({ apiKey: Env.GEMINI_API_KEY });
 
 const responseSchema = z
   .object({
+    title: z.string().max(1024).describe("A short, clear, and descriptive title summarizing the dataset's content"),
     questions: z
       .array(
         z
           .object({
-            text: z.string().describe("A clear and concise question derived from the dataset."),
+            text: z.string().max(1024).describe("A clear and concise question derived from the dataset."),
             answers: z
               .array(
                 z
                   .object({
-                    text: z.string().describe("The text of this answer option."),
+                    text: z.string().max(1024).describe("The text of this answer option."),
                     correct: z.boolean().describe("If this option is correct"),
                   })
                   .strict(),
@@ -26,7 +26,7 @@ const responseSchema = z
               .min(4)
               .max(4)
               .describe("Exactly 4 answer options for the question."),
-            explanation: z.string().describe("Explanation of why the answer is correct."),
+            explanation: z.string().max(1024).describe("Explanation of why the answer is correct."),
           })
           .strict(),
       )
@@ -37,159 +37,107 @@ const responseSchema = z
 
 const responseSchemaJson = z.toJSONSchema(responseSchema);
 
-export type Response = z.infer<typeof responseSchema>;
+export type Questions = MakeNullish<{
+  text: string;
+  explanation: string;
+  answers: MakeNullish<{
+    id: string;
+    text: string;
+    correct: boolean;
+  }>[];
+}>[];
+
+export type Response = MakeNullish<{
+  title: string;
+  questions: Questions;
+}>;
 
 const systemInstruction = `
-You are a quiz generation assistant. Your task is to generate multiple-choice questions based on a given dataset provided in text format.
-In addition to the dataset, you may also receive a list of previously generated questions. You must not regenerate any question that already exists in that list. The output should include only newly generated questions that are not duplicates or reworded versions of the existing ones.
+You are a quiz-generation assistant.  Your job is to produce a set of multiple-choice questions (MCQs) derived from a text dataset.  Output must be machine-readable JSON that strictly follows the response schema (title + questions).  Do not output any commentary, diagnostics, or anything other than the JSON object that validates against the response schema.
 
-Requirements:
-All questions and answer choices must be written in the same language as the dataset.
-Each question must have exactly 4 answer options, labeled with a "text" and a "correct" boolean field.
-Each question must have between 1 and 3 correct answers ("correct": true) among the four options.
-Provide a concise and informative explanation for each question that justifies the correct answer(s).
+High-level goals
+- Create clear, factually grounded MCQs that come only from the input dataset.
+- Do NOT invent facts or add information that is not present in the dataset.
+- Preserve the dataset's language: detect the dataset's primary language and generate all text in that language (no translation or mixing).
 
-Constraints:
-Avoiding Duplicates
-Compare newly generated questions with the provided list of existing questions.
-Do not include any question that matches or is a rephrased duplicate of an existing one.
-If avoiding duplicates results in fewer than the required number of questions, fill the remaining slots with different questions covering other facts or concepts from the dataset.
+Avoiding duplicates (very important)
+- You may receive a list of previously generated questions. Do not regenerate any question that is identical or a rephrased duplicate of an existing question.
+- Use semantic/keyword comparison (paraphrase detection) and exact-string matching to detect duplicates. If a newly proposed question would be a paraphrase of any existing question, discard it.
+- If duplicate avoidance reduces the available pool, fill remaining slots with distinct questions that cover other facts or concepts present in the dataset.
+- If no new valid questions can be produced (e.g., dataset too small or completely covered by existing questions), return a valid JSON object with an appropriate title and an empty "questions" array.
 
-General Rules
-Ensure topic and difficulty diversity across the questions.
-Avoid duplication of facts, rephrased repetitions, or overlapping ideas.
-Before returning the result, double-check that the number of newly generated questions exactly matches the required count for the detected case.
-`;
+Content suitability & safety
+- If the dataset is gibberish, contains fewer than 3 meaningful facts/concepts, or otherwise lacks coherent content, do NOT generate questions — return a valid JSON with a title and an empty "questions" array.
+- Do not produce content that is offensive, harmful, or disallowed by policy. If the dataset requests such content, return an empty "questions" array.
 
-const metadataSchema = z.object({
-  title: z.string().max(255).describe("A short descriptive title summarizing the dataset"),
-  language: z.string().max(64).describe("The primary language of the dataset in ISO 639 format"),
-  ok: z
-    .boolean()
-    .describe("true if the context is informative enough to generate multiple-choice questions; false if it is not"),
-  numberOfQuestions: z.number().describe("Number of questions should be generated from the dataset"),
-});
+Question writing rules
+- All questions and answers must be clearly answerable using information present in the dataset.
+- Avoid overlap: questions should target different facts, concepts, or reasoning steps (aim for variety of topic and difficulty).
+- Keep language concise and unambiguous. Prefer single-sentence questions when possible.
+- Explanations must directly reference the dataset fact(s) that justify the correct answer(s); do not hallucinate extra context.
+- Maintain consistent formatting: 4 answer choices per question, exactly 1–3 correct answers, explanation for each question.
 
-const metadataSchemaJson = z.toJSONSchema(metadataSchema);
+Quality checks (perform before returning)
+- Confirm exactly 4 answers per question and between 1 and 3 "correct: true" flags.
+- Confirm no question duplicates any provided existing question (semantic duplicates included).
+- Confirm output is valid JSON and conforms to the Zod schema.
 
-const metadataInstruction = `
-You are a quiz generation assistant. Your task is to analyze a given dataset in text format and output a JSON object containing metadata for quiz generation.
+Failure & edge behaviors
+- If dataset language cannot be determined, default to the language used most frequently in the dataset; if still ambiguous, use English.
+- If previously-generated-questions are missing or not provided, generate a full set of valid questions based on the dataset (still adhere to uniqueness among the questions you produce).
+- If you cannot create any valid questions, return a JSON object with a short descriptive title and an empty "questions" array.
 
-Language Rule:
-- Detect the primary language of the dataset and return it in ISO 639 format (e.g., "en" for English, "vi" for Vietnamese).
-- Do not translate, mix, or switch languages.
+Examples
+- Allowed: questions that are directly supported by dataset facts, short explanations citing dataset facts.
+- Disallowed: invented facts, answers that require outside knowledge, paraphrases of provided questions.
 
-Content Suitability:
-- If the dataset is gibberish, meaningless text, random characters, or otherwise contains no coherent or factual information, set "ok" to false.
-- If the dataset contains at least 3 meaningful facts or concepts, set "ok" to true.
-
-Title:
-- Provide a short, clear, and descriptive title summarizing the dataset's content.
-
-Question Count Guidance:
-- If the dataset is a list of clear question-and-answer pairs (Q&A format), the number of generated questions must match the number of Q&A pairs detected (max 100).
-- If the dataset is not in Q&A format, a standard-length article or dataset should generate approximately 10 questions.
-
-Output Rules:
-- Output only the JSON object as specified in the schema. Do not include any extra commentary or formatting.
+IMPORTANT: Output nothing but the final JSON object that matches the response schema. No extra text, no markdown fences, and no commentary.
 `;
 
 class QuizGenerator {
-  public async generateMetadata(context: string) {
-    try {
-      const response = await ai.models.generateContent({
-        model: await remoteConfigs.getLLMModel(),
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: context,
-              },
-            ],
-          },
-        ],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: metadataSchemaJson,
-          systemInstruction: metadataInstruction,
-          thinkingConfig: {
-            thinkingBudget: 512,
-          },
-        },
-      });
-      if (!response.text) {
-        return null;
-      }
-      return metadataSchema.parse(JSON.parse(response.text));
-    } catch (e) {
-      logger.error({ error: e, method: "QuizGenerator.generateMetadata" });
-      return null;
-    }
-  }
-
   public async generateQuestions(
     context: string,
     numberOfQuestions: number,
     previousQuestions: Response["questions"],
   ): Promise<Response | null> {
-    try {
-      const response = await ai.models.generateContent({
-        model: (await remoteConfigs.getLLMModel()) || "gemini-2.5-flash-lite",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: `previous questions: ${JSON.stringify(previousQuestions)}`,
-              },
-            ],
-          },
-          {
-            role: "user",
-            parts: [
-              {
-                text: `generate exactly ${numberOfQuestions} questions`,
-              },
-            ],
-          },
-          {
-            role: "user",
-            parts: [
-              {
-                text: context,
-              },
-            ],
-          },
-        ],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: responseSchemaJson,
-          systemInstruction: (await remoteConfigs.getLLMInstruction()) || systemInstruction,
-          thinkingConfig: {
-            thinkingBudget: 0,
-          },
+    const response = await ai.models.generateContent({
+      model: (await remoteConfigs.getLLMModel()) || "gemini-2.5-flash-lite",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `previous questions: ${JSON.stringify(previousQuestions)}`,
+            },
+          ],
         },
-      });
-      if (!response.text) {
-        return null;
-      }
-      const result = responseSchema.safeParse(JSON.parse(response.text));
-      if (!result.success) {
-        logger.error("invalid schema", result.error.message);
-        return null;
-      }
-      result.data?.questions.forEach((question) => {
-        // @ts-ignore
-        question.id = v4();
-        // @ts-ignore
-        question.answers?.forEach((answer) => (answer.id = v4()));
-      });
-      return result.data || null;
-    } catch (e) {
-      logger.error({ error: e, method: "QuizGenerator.generateQuestions" });
-      return null;
-    }
+        {
+          role: "user",
+          parts: [
+            {
+              text: `generate exactly ${numberOfQuestions} questions`,
+            },
+          ],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              text: context,
+            },
+          ],
+        },
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchemaJson,
+        systemInstruction: (await remoteConfigs.getLLMInstruction()) || systemInstruction,
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
+      },
+    });
+    return responseSchema.parse(JSON.parse(response.text || ""));
   }
 }
 

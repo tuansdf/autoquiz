@@ -31,6 +31,11 @@ export const createQuiz = async (data: { context: string }): Promise<GetQuizResp
   return result.json();
 };
 
+export const generateQuestions = async (data: { quizId: string }): Promise<GetQuizResponse> => {
+  const result = await apiAuth.post(`api/quizzes/${data.quizId}/more`);
+  return result.json();
+};
+
 export const updateQuizVisibility = async (data: { id: string; isPublic: boolean }): Promise<void> => {
   const result = await apiAuth.patch(`api/quizzes/${data.id}/public?value=${data.isPublic}`);
   return result.json();

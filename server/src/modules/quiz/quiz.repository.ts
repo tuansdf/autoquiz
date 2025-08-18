@@ -1,12 +1,18 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db/db";
 import { quizzes } from "../../db/schema/quizzes";
-import type { NewQuiz, Quiz, QuizListItem, QuizPublic } from "./quiz.type";
+import type { NewQuiz, Quiz, QuizListItem, QuizPrivate, QuizPublic } from "./quiz.type";
 
 class QuizRepository {
-  public async findTopByIdAndCreatedBy(id: string, userId: string): Promise<Quiz | null> {
+  public async findTopByIdAndCreatedBy(id: string, userId: string): Promise<QuizPrivate | null> {
     const result = await db
-      .select()
+      .select({
+        id: quizzes.id,
+        title: quizzes.title,
+        context: quizzes.context,
+        isProcessing: quizzes.isProcessing,
+        isPublic: quizzes.isPublic,
+      })
       .from(quizzes)
       .where(and(eq(quizzes.id, id), eq(quizzes.createdBy, userId)))
       .limit(1);
@@ -19,7 +25,6 @@ class QuizRepository {
       .select({
         id: quizzes.id,
         title: quizzes.title,
-        questions: quizzes.questions,
       })
       .from(quizzes)
       .where(and(eq(quizzes.id, id), eq(quizzes.isPublic, true)))
@@ -33,7 +38,7 @@ class QuizRepository {
       .select({
         id: quizzes.id,
         title: quizzes.title,
-        ok: quizzes.ok,
+        isProcessing: quizzes.isProcessing,
         createdAt: quizzes.createdAt,
       })
       .from(quizzes)

@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { authenticate } from "../auth/auth.middleware";
 import { quizService } from "./quiz.service";
-import { quizValidator } from "./quiz.validator.js";
+import { quizValidator } from "./quiz.validator";
 
 export const quizRouter = new Hono();
 
@@ -26,6 +26,13 @@ quizRouter.post("/", authenticate(), async (c) => {
   const userId = c.var.authPayload?.sub || "";
   const request = quizValidator.validateCreate(await c.req.json());
   return Response.json({ data: await quizService.create(request, userId) });
+});
+
+quizRouter.post("/:id/more", authenticate(), async (c) => {
+  const quizId = z.uuid().parse(c.req.param("id"));
+  const userId = c.var.authPayload?.sub || "";
+  await quizService.generateMore(quizId, userId);
+  return Response.json({ message: "OK" });
 });
 
 quizRouter.patch("/:id/public", authenticate(), async (c) => {

@@ -29,8 +29,12 @@ class ConfigRepository {
     return result[0];
   }
 
-  public async update(values: Config): Promise<Config | null> {
-    const result = await db.update(configs).set(values).where(eq(configs.key, values.key)).returning();
+  public async update(values: NewConfig): Promise<Config | null> {
+    const result = await db
+      .update(configs)
+      .set(values)
+      .where(eq(configs.key, values.key || ""))
+      .returning();
     if (!result.length || !result[0]) return null;
     return result[0];
   }

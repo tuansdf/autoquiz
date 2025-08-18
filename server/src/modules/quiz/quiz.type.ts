@@ -11,12 +11,21 @@ export type CreateQuizRequest = {
 export type QuizListItem = MakeNullish<{
   id: string;
   title: string;
-  ok: boolean;
+  isProcessing: boolean;
   createdAt: Date;
 }>;
 
 export type QuizPublic = MakeNullish<{
   id: string;
   title: string;
+  questions: string;
+}>;
+
+export type QuizPrivate = MakeNullish<{
+  id: string;
+  title: string;
+  context: string;
+  isProcessing: boolean;
+  isPublic: boolean;
   questions: string;
 }>;

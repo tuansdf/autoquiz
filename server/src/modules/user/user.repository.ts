@@ -35,8 +35,12 @@ class UserRepository {
     return result[0];
   }
 
-  public async update(values: User): Promise<User | null> {
-    const result = await db.update(users).set(values).where(eq(users.id, values.id)).returning();
+  public async update(values: NewUser): Promise<User | null> {
+    const result = await db
+      .update(users)
+      .set(values)
+      .where(eq(users.id, values.id || ""))
+      .returning();
     if (!result.length || !result[0]) return null;
     return result[0];
   }

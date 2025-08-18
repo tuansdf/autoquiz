@@ -1,14 +1,22 @@
-import { CustomException } from "../../custom-exception.js";
-import { base64 } from "../../utils/base64.js";
-import { commonUtils } from "../../utils/common.util.js";
-import { quizGenerator } from "./quiz-generator.js";
-import { DEFAULT_QUESTIONS, MAX_CONTEXT_SIZE, MAX_QUESTIONS } from "./quiz.constant.js";
+import { CustomException } from "../../custom-exception";
+import { base64 } from "../../utils/base64";
+import { logger } from "../../utils/logger";
+import { questionRepository } from "../question/question.repository";
+import { questionService } from "../question/question.service";
+import { quizGenerator } from "./quiz-generator";
+import { DEFAULT_QUESTIONS, MAX_CONTEXT_SIZE, MAX_QUESTIONS } from "./quiz.constant";
 import { quizRepository } from "./quiz.repository";
-import type { CreateQuizRequest, Quiz, QuizListItem, QuizPublic } from "./quiz.type";
+import type { CreateQuizRequest, Quiz, QuizListItem, QuizPrivate, QuizPublic } from "./quiz.type";
 
 class QuizService {
-  public async findOneById(id: string, userId: string): Promise<Quiz | null> {
-    return quizRepository.findTopByIdAndCreatedBy(id, userId);
+  public async findOneById(id: string, userId: string): Promise<QuizPrivate | null> {
+    const quiz = await quizRepository.findTopByIdAndCreatedBy(id, userId);
+    if (!quiz) return null;
+    const questions = await questionService.findAllByQuizId(quiz.id || "");
+    if (questions?.length) {
+      quiz.questions = base64.encode(JSON.stringify(questions), { compression: true });
+    }
+    return quiz;
   }
 
   public async findOnePublicById(id: string): Promise<QuizPublic | null> {
@@ -24,32 +32,29 @@ class QuizService {
   }
 
   private async generateQuestions(quizId: string, request: CreateQuizRequest) {
-    let ok = false;
-    let title = "";
-    let questions: any = null;
-    const metadata = await quizGenerator.generateMetadata(request.context);
-    if (metadata?.ok) {
-      title = metadata.title;
-      let numberOfQuestions = metadata.numberOfQuestions || 0;
-      if (numberOfQuestions <= 1) {
-        numberOfQuestions = DEFAULT_QUESTIONS;
-      }
-      if (numberOfQuestions > MAX_QUESTIONS) {
-        numberOfQuestions = MAX_QUESTIONS;
-      }
-      const response = await quizGenerator.generateQuestions(request.context, numberOfQuestions, []);
-      if (response?.questions) {
-        ok = true;
-        questions = response?.questions;
-      }
+    try {
+      await quizRepository.update({
+        id: quizId,
+        isProcessing: true,
+        updatedAt: new Date(),
+      });
+      const questions = await questionRepository.findAllByQuizId(quizId);
+      const response = await quizGenerator.generateQuestions(request.context, DEFAULT_QUESTIONS, questions);
+      await quizRepository.update({
+        id: quizId,
+        title: response?.title,
+        isProcessing: false,
+        updatedAt: new Date(),
+      });
+      await questionService.addAllByQuizId(response?.questions || [], quizId);
+    } catch (e) {
+      logger.error({ error: e, method: "QuizService.generateQuestions" });
+      await quizRepository.update({
+        id: quizId,
+        isProcessing: false,
+        updatedAt: new Date(),
+      });
     }
-    await quizRepository.update({
-      id: quizId,
-      title,
-      ok,
-      questions: base64.encode(JSON.stringify(questions), { compression: true }),
-      updatedAt: new Date(),
-    });
   }
 
   public async create(request: CreateQuizRequest, userId: string): Promise<Quiz> {
@@ -59,12 +64,26 @@ class QuizService {
     }
     const result = await quizRepository.insert({
       context: request.context,
-      contextHash: commonUtils.sha1(request.context),
+      isProcessing: true,
       createdBy: userId,
     });
-    request.context = context;
-    this.generateQuestions(result?.id!, request);
+    this.generateQuestions(result?.id!, { context });
     return result!;
+  }
+
+  public async generateMore(quizId: string, userId: string) {
+    const quiz = await quizRepository.findTopByIdAndCreatedBy(quizId, userId);
+    if (!quiz) {
+      throw new CustomException("Quiz not found");
+    }
+    if (quiz.isProcessing) {
+      throw new CustomException("Another request is being processed");
+    }
+    const questions = await questionRepository.countAllByQuizId(quizId);
+    if (questions >= MAX_QUESTIONS) {
+      throw new CustomException("You have reached the maximum number of questions for this quiz");
+    }
+    this.generateQuestions(quizId, { context: base64.decode(quiz.context || "", { decompression: true }) });
   }
 }
 

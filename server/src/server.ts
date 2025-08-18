@@ -17,14 +17,14 @@ app.use(
 );
 app.use(secureHeaders({ crossOriginOpenerPolicy: false }));
 app.use(async (c, next) => {
+  const start = performance.now();
   const requestId = v4();
   c.set("requestId", requestId);
   const path = c.req.path;
   const method = c.req.method;
-  const start = Date.now();
   logger.info({ requestId, event: "ENTER", method, path });
   await next();
-  logger.info({ requestId, event: "EXIT", method, path, elapsedMs: Date.now() - start });
+  logger.info({ requestId, event: "EXIT", method, path, elapsedMs: performance.now() - start });
 });
 
 app.route("/api", routes);

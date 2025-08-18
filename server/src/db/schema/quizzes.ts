@@ -9,10 +9,8 @@ export const quizzes = pgTable(
       .primaryKey()
       .$default(() => v7()),
     context: text("context"),
-    contextHash: text("context_hash"),
     title: text("title"),
-    ok: boolean("ok"),
-    questions: text("questions"),
+    isProcessing: boolean("is_processing"),
     isPublic: boolean("is_public").default(sql`false`),
     createdBy: uuid("created_by"),
     createdAt: timestamp("created_at", {
@@ -28,5 +26,5 @@ export const quizzes = pgTable(
       .defaultNow()
       .$onUpdateFn(() => new Date()),
   },
-  (table) => [index("created_by_idx").on(table.createdBy), index("context_hash_idx").on(table.contextHash)],
+  (table) => [index("created_by_idx").on(table.createdBy)],
 );

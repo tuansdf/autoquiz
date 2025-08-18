@@ -91,7 +91,15 @@ const UpdateModal = (props: { data?: Config }) => {
 
   return (
     <>
-      <ActionIcon onClick={modalActions.open}>{isUpdate ? <IconEdit size={16} /> : <IconPlus size={16} />}</ActionIcon>
+      {isUpdate ? (
+        <ActionIcon onClick={modalActions.open}>
+          <IconEdit size={16} />
+        </ActionIcon>
+      ) : (
+        <Button onClick={modalActions.open} leftSection={<IconPlus size={16} />}>
+          Add
+        </Button>
+      )}
       <Modal opened={modalOpen} onClose={modalActions.close} centered title={isUpdate ? "Update" : "Create"}>
         <Box component="form" onSubmit={formMethods.handleSubmit(handleSubmit)}>
           <TextInput label="Key" {...formMethods.register("key")} disabled={isUpdate} />

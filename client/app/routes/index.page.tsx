@@ -31,11 +31,7 @@ export default function IndexPage() {
 
   const quizzesGroupedByDate = useMemo(() => {
     const refreshFrom = dayjs().subtract(REFRESH_RANGE_MS, "millisecond").unix();
-    setNeedRefresh(
-      !!quizzes?.some(
-        (item) => (item.ok === null || item.ok === undefined) && dayjs(item.createdAt).unix() > refreshFrom,
-      ),
-    );
+    setNeedRefresh(!!quizzes?.some((item) => item.isProcessing && dayjs(item.createdAt).unix() > refreshFrom));
     return quizzes?.reduce(
       (acc, cur) => {
         const date = dayjs(cur.createdAt).format("DD/MM/YYYY");
@@ -66,13 +62,12 @@ export default function IndexPage() {
                   <Text fw={600}>{date}</Text>
                   <Flex direction="column" gap="sm">
                     {quizzesGroupedByDate[date].map((quiz) => {
-                      const ok = quiz.ok;
                       return (
                         <Button
                           key={quiz.id}
-                          component={ok ? Link : undefined}
-                          to={ok ? `/quizzes/${quiz.id}` : ""}
-                          disabled={!ok}
+                          component={!quiz.isProcessing ? Link : undefined}
+                          to={!quiz.isProcessing ? `/quizzes/${quiz.id}` : ""}
+                          disabled={quiz.isProcessing}
                           variant="default"
                           size="lg"
                           px="md"
@@ -80,7 +75,7 @@ export default function IndexPage() {
                             inner: { justifyContent: "flex-start" },
                           }}
                         >
-                          <Text truncate="end">{ok ? quiz.title : ok === false ? "Failed" : "Processing..."}</Text>
+                          <Text truncate="end">{quiz.isProcessing ? "Processing..." : quiz.title || "Failed"}</Text>
                         </Button>
                       );
                     })}

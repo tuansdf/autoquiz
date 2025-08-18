@@ -1,18 +1,16 @@
-import { getQuiz, updateQuizVisibility } from "@/api/quiz.api.js";
+import { generateQuestions, getQuiz, updateQuizVisibility } from "@/api/quiz.api.js";
 import { ScreenLoading } from "@/components/screen-loading.js";
-import type { Question } from "@/type/quiz.type.js";
+import type { Question, Quiz, QuizDetail } from "@/type/quiz.type.js";
 import { isAuth } from "@/utils/auth.util.js";
 import { handleHttpError } from "@/utils/common.util.js";
-import { Alert, Box, Button, Checkbox, Flex, Radio, Switch, Text, Title } from "@mantine/core";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { Alert, Box, Button, Checkbox, Flex, LoadingOverlay, Radio, Switch, Text, Title } from "@mantine/core";
+import { IconCheck, IconPlus, IconX } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Controller, type SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { useParams } from "react-router";
 
-type FormValues = {
-  questions: Question[];
-};
+const INTERVAL_MS = 1000 * 5;
 
 const shuffleArray = <T,>(array: T[]): T[] => {
   const arr = [...array];
@@ -33,12 +31,19 @@ const shuffleQuestions = (questions: Question[]): Question[] => {
   );
 };
 
+type FormValues = {
+  questions: Question[];
+};
+
 export default function QuizPage() {
+  const [needRefresh, setNeedRefresh] = useState(false);
   const [final, setFinal] = useState<Question[] | undefined>();
   const params = useParams<{ id?: string }>();
   const dataQuery = useQuery({
     queryKey: ["quizzes", params.id],
     queryFn: () => getQuiz(params.id),
+    refetchInterval: needRefresh ? INTERVAL_MS : undefined,
+    refetchIntervalInBackground: true,
   });
   const questions = dataQuery.data?.data?.questions;
   const formMethods = useForm<FormValues>({
@@ -76,6 +81,10 @@ export default function QuizPage() {
     formMethods.reset({ questions: shuffleQuestions(questions) });
   }, [questions]);
 
+  useEffect(() => {
+    setNeedRefresh(!!dataQuery.data?.data?.isProcessing);
+  }, [dataQuery.data?.data?.isProcessing]);
+
   if (dataQuery.isLoading) {
     return <ScreenLoading visible={dataQuery.isLoading} />;
   }
@@ -89,7 +98,7 @@ export default function QuizPage() {
       <title>{dataQuery.data?.data?.title || "Quiz"}</title>
 
       <Box pos="relative">
-        <PublicSwitch checked={!!dataQuery.data.data.isPublic} />
+        <QuizConfig item={dataQuery.data.data} />
         <Title mb="lg" fz="h3">
           {dataQuery.data?.data?.title}
         </Title>
@@ -193,11 +202,15 @@ export default function QuizPage() {
   );
 }
 
-const PublicSwitch = (props: { checked: boolean }) => {
+const QuizConfig = (props: { item: QuizDetail }) => {
   const params = useParams<{ id?: string }>();
   const updateMutation = useMutation({
     mutationKey: ["quizzes", params.id],
     mutationFn: updateQuizVisibility,
+  });
+  const generateMutation = useMutation({
+    mutationKey: ["quizzes", params.id],
+    mutationFn: generateQuestions,
   });
 
   const handleSwitch = async (value: boolean) => {
@@ -208,14 +221,34 @@ const PublicSwitch = (props: { checked: boolean }) => {
     }
   };
 
+  const handleGenerate = async () => {
+    try {
+      await generateMutation.mutateAsync({ quizId: params.id || "" });
+    } catch (e) {
+      handleHttpError(e);
+    }
+  };
+
   if (!isAuth()) return null;
 
   return (
-    <Switch
-      checked={props.checked}
-      label="Make this quiz shareable"
-      onChange={(e) => handleSwitch(e.target.checked)}
-      mb="md"
-    />
+    <Flex justify="space-between" align="center" mb="md">
+      <Box pos="relative">
+        <LoadingOverlay visible={updateMutation.isPending} />
+        <Switch
+          checked={props.item.isPublic}
+          label="Make this quiz shareable"
+          onChange={(e) => handleSwitch(e.target.checked)}
+        />
+      </Box>
+      <Button
+        leftSection={<IconPlus size={16} />}
+        onClick={handleGenerate}
+        loading={generateMutation.isPending}
+        disabled={props.item.isProcessing}
+      >
+        Generate more
+      </Button>
+    </Flex>
   );
 };
