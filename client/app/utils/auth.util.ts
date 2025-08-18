@@ -22,7 +22,11 @@ export const handleLoginSuccess = (result: LoginResponse, navigateFn?: (url: str
 export const handleLogout = (navigateFn?: (url: string) => any) => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
-  navigateFn?.("/auth");
+  if (navigateFn) {
+    navigateFn("/auth");
+  } else {
+    window.location.replace("/auth");
+  }
 };
 
 interface AuthJwtPayload extends JwtPayload {
