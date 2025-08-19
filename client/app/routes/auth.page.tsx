@@ -36,7 +36,7 @@ export default function AuthPage() {
 
   const handleLogin = async () => {
     window.removeEventListener("message", loginRef.current);
-    const popup = window.open(`${import.meta.env.VITE_SERVER_BASE_URL}/api/auth/google`, "_blank");
+    const popup = window.open(`${import.meta.env.VITE_SERVER_BASE_URL}/api/auth/google`, "login-google", "width=600,height=700");
     if (!popup) {
       notifications.show({
         message: "Please enable pop-ups to continue",

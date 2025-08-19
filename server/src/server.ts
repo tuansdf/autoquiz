@@ -10,12 +10,9 @@ import { logger } from "./utils/logger";
 
 const app = new Hono();
 
-app.use(
-  cors({
-    origin: Env.CLIENT_BASE_URL,
-  }),
-);
-app.use(secureHeaders({ crossOriginOpenerPolicy: false }));
+app.use(cors({ origin: Env.CLIENT_BASE_URL }));
+app.use(secureHeaders({ crossOriginOpenerPolicy: "unsafe-none" }));
+
 app.use(async (c, next) => {
   const start = performance.now();
   const requestId = v4();
