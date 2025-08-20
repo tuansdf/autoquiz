@@ -1,5 +1,5 @@
 import { quizzes } from "../../db/schema/quizzes";
-import type { MakeNullish } from "../../types.js";
+import type { MakeNullish } from "../../types";
 
 export type Quiz = typeof quizzes.$inferSelect;
 export type NewQuiz = typeof quizzes.$inferInsert;

@@ -1,4 +1,4 @@
-import { configService } from "./config.service.js";
+import { configService } from "./config.service";
 
 class RemoteConfigs {
   public async isRegistrationEnabled(): Promise<boolean> {

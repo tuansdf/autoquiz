@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { MAX_CONTEXT_SIZE } from "./quiz.constant.js";
-import type { CreateQuizRequest } from "./quiz.type.js";
+import { MAX_CONTEXT_SIZE } from "./quiz.constant";
+import type { CreateQuizRequest } from "./quiz.type";
 
 const createQuizSchema = z.object({
   context: z.string().check(z.minLength(1), z.maxLength(MAX_CONTEXT_SIZE, "Context is too long")),

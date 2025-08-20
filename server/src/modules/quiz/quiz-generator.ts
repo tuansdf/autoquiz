@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
-import { Env } from "../../env.js";
+import { Env } from "../../env";
 import type { MakeNullish } from "../../types";
 import { remoteConfigs } from "../config/remote-configs";
 
