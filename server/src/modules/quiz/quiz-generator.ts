@@ -63,6 +63,7 @@ High-level goals
 Avoiding duplicates (very important)
 - You may receive a list of previously generated questions. Do not regenerate any question that is identical or a rephrased duplicate of an existing question.
 - Use semantic/keyword comparison (paraphrase detection) and exact-string matching to detect duplicates. If a newly proposed question would be a paraphrase of any existing question, discard it.
+- When previous questions are provided, examine the remaining dataset context and generate new questions only from those uncovered parts but still follow all requirements
 - If duplicate avoidance reduces the available pool, fill remaining slots with distinct questions that cover other facts or concepts present in the dataset.
 - If no new valid questions can be produced (e.g., dataset too small or completely covered by existing questions), return a valid JSON object with an appropriate title and an empty "questions" array.
 

@@ -244,8 +244,7 @@ const QuizConfig = (props: { item: QuizDetail }) => {
       <Button
         leftSection={<IconPlus size={16} />}
         onClick={handleGenerate}
-        loading={generateMutation.isPending}
-        disabled={props.item.isProcessing}
+        loading={generateMutation.isPending || props.item.isProcessing}
       >
         Generate more
       </Button>
