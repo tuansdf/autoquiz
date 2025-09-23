@@ -31,7 +31,7 @@ oauthRouter.get(
       </head>
       <body>
         <script>
-          window.opener?.postMessage(${JSON.stringify({ data: loginResponse })}, '${Env.CLIENT_BASE_URL}');
+          window.opener?.postMessage(${JSON.stringify({ data: loginResponse })}, window.location.origin);
         </script>
         <p>Authenticated successfully. This window can be closed.</p>
       </body>
@@ -48,7 +48,7 @@ oauthRouter.get(
       </head>
       <body>
         <script>
-          window.opener?.postMessage(${JSON.stringify({ message: response.message })}, '${Env.CLIENT_BASE_URL}');
+          window.opener?.postMessage(${JSON.stringify({ message: response.message })});
         </script>
         <p>Authentication failed. This window can be closed.</p>
       </body>

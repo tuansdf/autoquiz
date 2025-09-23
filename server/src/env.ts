@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const schema = z.object({
-  PORT: z.coerce.number().min(1),
+  PORT: z.coerce.number().optional(),
   DB_URL: z.string().min(1),
   JWT_SECRET: z.string().min(1),
   JWT_ACCESS_LIFETIME: z.coerce.number().min(1),
@@ -10,7 +10,7 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
   GOOGLE_REDIRECT_URI: z.url().min(1),
-  CLIENT_BASE_URL: z.string().min(1),
+  SERVER_ENV: z.string().optional(),
 });
 
 const parsed = schema.safeParse(process.env);

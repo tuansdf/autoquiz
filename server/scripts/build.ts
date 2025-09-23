@@ -1,12 +1,19 @@
 import { $ } from "bun";
+import { cpSync, existsSync } from "node:fs";
 
 await $`rm -rf dist`;
 
 await Bun.build({
-  entrypoints: ["./src/server.ts"],
+  entrypoints: ["./src/index.ts"],
   outdir: "./dist",
   target: "bun",
   sourcemap: "linked",
 });
 
-await $`cp .env dist/.env`;
+if (existsSync(".env")) {
+  cpSync(".env", "dist/.env");
+}
+
+if (existsSync("../client/build/client")) {
+  cpSync("../client/build/client", "dist/static", { recursive: true });
+}

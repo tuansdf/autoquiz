@@ -1,3 +1,4 @@
+import { ENV_SERVER_BASE_URL } from "@/env.js";
 import type { LoginResponse } from "@/type/auth.type.js";
 import { handleLoginSuccess, isAuth } from "@/utils/auth.util.js";
 import { Button, Flex, Title } from "@mantine/core";
@@ -15,7 +16,7 @@ export default function AuthPage() {
   }
 
   const handleLoginMessage = (popup?: Window | null) => (event: MessageEvent) => {
-    if (event.origin !== import.meta.env.VITE_SERVER_BASE_URL) {
+    if (event.origin !== (ENV_SERVER_BASE_URL || window.location.origin)) {
       return;
     }
     if (popup) {
@@ -36,7 +37,7 @@ export default function AuthPage() {
 
   const handleLogin = async () => {
     window.removeEventListener("message", loginRef.current);
-    const popup = window.open(`${import.meta.env.VITE_SERVER_BASE_URL}/api/auth/google`, "login-google", "width=600,height=700");
+    const popup = window.open(`${ENV_SERVER_BASE_URL || ""}/api/auth/google`, "login-google", "width=600,height=700");
     if (!popup) {
       notifications.show({
         message: "Please enable pop-ups to continue",
