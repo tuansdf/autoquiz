@@ -21,7 +21,7 @@ export default function AuthPage() {
 
   const handleExchangeCode = async (code: string) => {
     try {
-      const response = await exchangeToken({ token: code }).then();
+      const response = await exchangeToken({ token: code });
       handleLoginSuccess(response, navigate);
     } catch (e) {
       await handleHttpError(e);

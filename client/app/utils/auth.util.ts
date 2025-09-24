@@ -8,7 +8,9 @@ const EXPIRED_SECONDS_OFFSET = 10;
 
 export const handleLoginSuccess = (result: LoginResponse, navigateFn?: (url: string) => any) => {
   localStorage.setItem("access_token", result.data?.accessToken || "");
-  localStorage.setItem("refresh_token", result.data?.refreshToken || "");
+  if (result.data?.refreshToken) {
+    localStorage.setItem("refresh_token", result.data?.refreshToken || "");
+  }
   if (navigateFn) {
     notifications.show({
       message: "Signed in successfully",
