@@ -11,6 +11,8 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1),
   GOOGLE_REDIRECT_URI: z.url().min(1),
   SERVER_ENV: z.string().optional(),
+  CLIENT_ORIGIN: z.string().min(1),
+  CLIENT_OAUTH_CALLBACK_URL: z.string().min(1),
 });
 
 const parsed = schema.safeParse(process.env);

@@ -5,11 +5,11 @@ import { jwt } from "../../utils/jwt";
 import { remoteConfigs } from "../config/remote-configs";
 import { userRepository } from "../user/user.repository";
 import type { User } from "../user/user.type";
-import { JWT_TYPE_ACCESS, JWT_TYPE_REFRESH } from "./auth.constant";
+import { JWT_TYPE_ACCESS, JWT_TYPE_EXCHANGE, JWT_TYPE_REFRESH } from "./auth.constant";
 import type { LoginResponse, RefreshTokenRequest } from "./auth.type";
 
 class AuthService {
-  private async createLoginResponse(user: User) {
+  private async createLoginResponse(user: User): Promise<LoginResponse> {
     const now = dayjs();
     const accessJwt = await jwt.sign({
       iat: now.unix(),
@@ -33,7 +33,7 @@ class AuthService {
     };
   }
 
-  public async loginByUsername(username: string): Promise<LoginResponse> {
+  public async loginByUsername(username: string): Promise<string> {
     if (!username) {
       throw new CustomException("Invalid credentials", 401);
     }
@@ -53,7 +53,17 @@ class AuthService {
         tokenValidFrom: new Date(),
       });
     }
-    return this.createLoginResponse(user!);
+    if (!user) {
+      throw new CustomException("Something went wrong", 500);
+    }
+    const now = dayjs();
+    return await jwt.sign({
+      iat: now.unix(),
+      nbf: now.unix(),
+      exp: now.add(30, "second").unix(),
+      sub: user.id,
+      typ: JWT_TYPE_EXCHANGE,
+    });
   }
 
   public async invalidate(userId: string): Promise<void> {
@@ -70,7 +80,7 @@ class AuthService {
     if (!user) {
       throw new CustomException("Invalid credentials", 401);
     }
-    if (!jwtPayload.iat || jwtPayload.typ !== JWT_TYPE_REFRESH) {
+    if (!jwtPayload.iat || (jwtPayload.typ !== JWT_TYPE_REFRESH && jwtPayload.typ !== JWT_TYPE_EXCHANGE)) {
       throw new CustomException("Invalid credentials", 401);
     }
     if (user.tokenValidFrom && jwtPayload.iat < dayjs(user.tokenValidFrom).unix()) {
@@ -79,7 +89,11 @@ class AuthService {
     if (!user.isEnabled) {
       throw new CustomException("Your account is locked", 400);
     }
-    return this.createLoginResponse(user!);
+    const result = await this.createLoginResponse(user);
+    if (jwtPayload.typ === JWT_TYPE_REFRESH) {
+      delete result.refreshToken;
+    }
+    return result;
   }
 }
 

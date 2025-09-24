@@ -13,7 +13,14 @@ class Middleware {
       const method = c.req.method;
       logger.info({ requestId, event: "ENTER", method, path });
       await next();
-      logger.info({ requestId, event: "EXIT", method, path, elapsedMs: performance.now() - start });
+      logger.info({
+        requestId,
+        event: "EXIT",
+        method,
+        path,
+        elapsedMs: performance.now() - start,
+        status: c.res.status,
+      });
     };
   }
 

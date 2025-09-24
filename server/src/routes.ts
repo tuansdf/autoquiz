@@ -9,7 +9,7 @@ export const routes = new Hono();
 routes.get("/health", async (c) => {
   return c.text("OK");
 });
-routes.route("/auth", oauthRouter);
+routes.route("/oauth", oauthRouter);
 routes.route("/auth", authRouter);
 routes.route("/configs", configRouter);
 routes.route("/quizzes", quizRouter);

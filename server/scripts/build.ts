@@ -13,7 +13,3 @@ await Bun.build({
 if (existsSync(".env")) {
   cpSync(".env", "dist/.env");
 }
-
-if (existsSync("../client/build/client")) {
-  cpSync("../client/build/client", "dist/static", { recursive: true });
-}

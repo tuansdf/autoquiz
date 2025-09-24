@@ -1,55 +1,38 @@
+import { exchangeToken } from "@/api/auth.api.js";
 import { ENV_SERVER_BASE_URL } from "@/env.js";
-import type { LoginResponse } from "@/type/auth.type.js";
 import { handleLoginSuccess, isAuth } from "@/utils/auth.util.js";
+import { handleHttpError } from "@/utils/common.util.js";
 import { Button, Flex, Title } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { IconBrandGoogleFilled } from "@tabler/icons-react";
-import { useRef } from "react";
-import { Navigate, useNavigate } from "react-router";
+import { useEffect } from "react";
+import { Navigate, useNavigate, useSearchParams } from "react-router";
 
 export default function AuthPage() {
-  const loginRef = useRef<any>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   if (isAuth()) {
     return <Navigate to="/" replace />;
   }
 
-  const handleLoginMessage = (popup?: Window | null) => (event: MessageEvent) => {
-    if (event.origin !== (ENV_SERVER_BASE_URL || window.location.origin)) {
-      return;
-    }
-    if (popup) {
-      popup.close();
-    }
-    const response = event.data as LoginResponse;
-    if (!response.data) {
-      notifications.show({
-        message: response.message || "Something Went Wrong",
-        withCloseButton: true,
-        color: "red",
-        style: { whiteSpace: "pre-line" },
-      });
-      return;
-    }
-    handleLoginSuccess(response, navigate);
+  const handleLogin = async () => {
+    window.open(`${ENV_SERVER_BASE_URL || ""}/api/oauth/google`, "_self");
   };
 
-  const handleLogin = async () => {
-    window.removeEventListener("message", loginRef.current);
-    const popup = window.open(`${ENV_SERVER_BASE_URL || ""}/api/auth/google`, "login-google", "width=600,height=700");
-    if (!popup) {
-      notifications.show({
-        message: "Please enable pop-ups to continue",
-        withCloseButton: true,
-        color: "red",
-        style: { whiteSpace: "pre-line" },
-      });
-      return;
+  const handleExchangeCode = async (code: string) => {
+    try {
+      const response = await exchangeToken({ token: code }).then();
+      handleLoginSuccess(response, navigate);
+    } catch (e) {
+      await handleHttpError(e);
     }
-    loginRef.current = handleLoginMessage(popup);
-    window.addEventListener("message", loginRef.current, { once: true });
   };
+
+  const code = searchParams.get("code");
+  useEffect(() => {
+    if (!code) return;
+    handleExchangeCode(code);
+  }, [code]);
 
   return (
     <>
