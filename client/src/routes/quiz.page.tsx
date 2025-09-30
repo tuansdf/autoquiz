@@ -1,6 +1,6 @@
 import { generateQuestions, getQuiz, updateQuizVisibility } from "@/api/quiz.api.js";
 import { ScreenLoading } from "@/components/screen-loading.js";
-import type { Question, Quiz, QuizDetail } from "@/type/quiz.type.js";
+import type { Question, QuizDetail } from "@/type/quiz.type.js";
 import { isAuth } from "@/utils/auth.util.js";
 import { handleHttpError } from "@/utils/common.util.js";
 import { Alert, Box, Button, Checkbox, Flex, LoadingOverlay, Radio, Switch, Text, Title } from "@mantine/core";
@@ -121,7 +121,7 @@ export default function QuizPage() {
                   return (
                     <Flex direction="column" gap="xs">
                       <Text>
-                        {!!final ? (
+                        {final ? (
                           <>
                             {isCorrectAnswer && (
                               <IconCheck

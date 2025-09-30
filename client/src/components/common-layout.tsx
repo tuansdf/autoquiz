@@ -1,7 +1,7 @@
 import { getSession, handleLogout, isAuth } from "@/utils/auth.util.js";
 import { Box, Button, Flex, Text } from "@mantine/core";
 import { IconLogin, IconLogout } from "@tabler/icons-react";
-import React, { type PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 import { Link, useNavigate } from "react-router";
 
 export const CommonLayout = (props: PropsWithChildren) => {

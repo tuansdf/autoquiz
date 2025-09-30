@@ -1,8 +1,8 @@
-import { reactRouter } from "@react-router/dev/vite";
 import viteLegacyPlugin from "@vitejs/plugin-legacy";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  plugins: [tsconfigPaths(), viteLegacyPlugin(), reactRouter()],
+  plugins: [tsconfigPaths(), viteLegacyPlugin(), react()],
 });
