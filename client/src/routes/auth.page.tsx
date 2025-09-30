@@ -11,12 +11,8 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  if (isAuth()) {
-    return <Navigate to="/" replace />;
-  }
-
   const handleLogin = async () => {
-    window.open(`${ENV_SERVER_BASE_URL || ""}/api/oauth/google`, "_self");
+    window.open(`${ENV_SERVER_BASE_URL || ""}/api/auth/oauth2/authorization/google`, "_self");
   };
 
   const handleExchangeCode = async (code: string) => {
@@ -33,6 +29,10 @@ export default function AuthPage() {
     if (!code) return;
     handleExchangeCode(code);
   }, [code]);
+
+  if (isAuth()) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <>

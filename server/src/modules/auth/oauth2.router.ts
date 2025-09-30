@@ -5,10 +5,10 @@ import { logger } from "../../utils/logger";
 import { authService } from "./auth.service";
 import { authValidator } from "./auth.validator";
 
-export const oauthRouter = new Hono();
+export const oauth2Router = new Hono();
 
-oauthRouter.get(
-  "/google",
+oauth2Router.get(
+  "/authorization/google",
   googleAuth({
     client_id: Env.GOOGLE_CLIENT_ID,
     client_secret: Env.GOOGLE_CLIENT_SECRET,
@@ -29,7 +29,7 @@ oauthRouter.get(
   },
 );
 
-oauthRouter.post("/exchange", async (c) => {
+oauth2Router.post("/token/exchange", async (c) => {
   const request = authValidator.validateRefreshToken(await c.req.json());
   return Response.json({ data: await authService.refreshToken(request) });
 });

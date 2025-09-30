@@ -9,7 +9,7 @@ export const refreshToken = async (data: { token: string }): Promise<LoginRespon
 };
 
 export const exchangeToken = async (data: { token: string }): Promise<LoginResponse> => {
-  const result = await apiPublic.post("api/oauth/exchange", {
+  const result = await apiPublic.post("api/auth/oauth2/token/exchange", {
     json: data,
   });
   return result.json();

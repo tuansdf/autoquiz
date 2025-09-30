@@ -20,7 +20,13 @@ class QuizService {
   }
 
   public async findOnePublicById(id: string): Promise<QuizPublic | null> {
-    return quizRepository.findTopByIdAndIsPublic(id);
+    const quiz = await quizRepository.findTopByIdAndIsPublic(id);
+    if (!quiz) return null;
+    const questions = await questionService.findAllByQuizId(quiz.id || "");
+    if (questions?.length) {
+      quiz.questions = base64.encode(JSON.stringify(questions), { compression: true });
+    }
+    return quiz;
   }
 
   public async findAllByUserId(userId: string): Promise<QuizListItem[]> {
