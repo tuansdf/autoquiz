@@ -4,10 +4,10 @@ import { notifications } from "@mantine/notifications";
 import dayjs from "dayjs";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
 
-const EXPIRED_SECONDS_OFFSET = 10;
+const EXPIRED_SECONDS_OFFSET = 30;
 
 export const handleLoginSuccess = (result: LoginResponse, navigateFn?: (url: string) => any) => {
-  localStorage.setItem("access_token", result.data?.accessToken || "");
+  sessionStorage.setItem("access_token", result.data?.accessToken || "");
   if (result.data?.refreshToken) {
     localStorage.setItem("refresh_token", result.data?.refreshToken || "");
   }
@@ -22,7 +22,7 @@ export const handleLoginSuccess = (result: LoginResponse, navigateFn?: (url: str
 };
 
 export const handleLogout = (navigateFn?: (url: string) => any) => {
-  localStorage.removeItem("access_token");
+  sessionStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
   if (navigateFn) {
     navigateFn("/auth");
@@ -66,7 +66,7 @@ export const decodeRefreshToken = (): AuthJwtPayload | null => {
 };
 
 export const getAccessToken = () => {
-  return localStorage.getItem("access_token");
+  return sessionStorage.getItem("access_token");
 };
 
 export const getRefreshToken = () => {
@@ -84,17 +84,12 @@ export const getValidAccessToken = async (): Promise<string | null | undefined> 
 
 export const executeGetValidAccessToken = async (): Promise<string | null | undefined> => {
   const accessToken = decodeAccessToken();
-  if (!accessToken) {
-    return null;
-  }
-  const expired = dayjs().unix() > (accessToken?.exp || 0) - EXPIRED_SECONDS_OFFSET;
-  if (!expired) {
-    return getAccessToken();
+  if (accessToken) {
+    const expired = dayjs().unix() > (accessToken.exp || 0) - EXPIRED_SECONDS_OFFSET;
+    if (!expired) return getAccessToken();
   }
   const refreshJwt = getRefreshToken();
-  if (!refreshJwt) {
-    return null;
-  }
+  if (!refreshJwt) return null;
   const result = await refreshToken({ token: refreshJwt });
   handleLoginSuccess(result);
   return result.data?.accessToken;
