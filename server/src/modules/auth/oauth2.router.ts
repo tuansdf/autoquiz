@@ -31,5 +31,5 @@ oauth2Router.get(
 
 oauth2Router.post("/token/exchange", async (c) => {
   const request = authValidator.validateRefreshToken(await c.req.json());
-  return Response.json({ data: await authService.refreshToken(request) });
+  return Response.json({ data: await authService.exchangeToken(request) });
 });

@@ -3,7 +3,9 @@ import { z } from "zod";
 const schema = z.object({
   PORT: z.coerce.number().optional(),
   DB_URL: z.string().min(1),
-  JWT_SECRET: z.string().min(1),
+  JWT_ACCESS_SECRET: z.string().min(1),
+  JWT_REFRESH_SECRET: z.string().min(1),
+  JWT_OAUTH2_SECRET: z.string().min(1),
   JWT_ACCESS_LIFETIME: z.coerce.number().min(1),
   JWT_REFRESH_LIFETIME: z.coerce.number().min(1),
   GEMINI_API_KEY: z.coerce.string().min(1),

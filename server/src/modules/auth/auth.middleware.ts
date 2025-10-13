@@ -1,7 +1,6 @@
 import type { MiddlewareHandler } from "hono";
 import { CustomException } from "../../custom-exception";
-import { jwt } from "../../utils/jwt";
-import { JWT_TYPE_ACCESS } from "./auth.constant";
+import { jwtService } from "./jwt.service";
 
 export const authenticate = (): MiddlewareHandler => async (c, next) => {
   const authHeader = c.req.header("Authorization");
@@ -14,12 +13,8 @@ export const authenticate = (): MiddlewareHandler => async (c, next) => {
     throw new CustomException("Invalid credentials", 401);
   }
 
-  const payload = await jwt.verify(bearerToken);
+  const payload = await jwtService.verifyAccessJwt(bearerToken);
   if (!payload) {
-    throw new CustomException("Invalid credentials", 401);
-  }
-
-  if (JWT_TYPE_ACCESS !== payload.typ) {
     throw new CustomException("Invalid credentials", 401);
   }
 
