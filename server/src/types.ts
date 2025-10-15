@@ -3,7 +3,7 @@ export type MakeNullish<TObject extends Record<any, any>> = {
 };
 
 export type CommonResponse<T = unknown> = MakeNullish<{
-  status: string | number;
+  status: number;
   message: string;
   data: T;
 }>;

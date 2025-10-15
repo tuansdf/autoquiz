@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
 import type { JWTPayload } from "jose";
+import { v4 } from "uuid";
 import { Env } from "../../env";
 import { jwt } from "../../utils/jwt";
 import type { User } from "../user/user.type";
-import { JWT_TYPE_ACCESS, JWT_TYPE_OAUTH2, JWT_TYPE_REFRESH } from "./auth.constant";
 
 const encoder = new TextEncoder();
 const accessSecret = encoder.encode(Env.JWT_ACCESS_SECRET);
@@ -21,7 +21,7 @@ class JwtService {
         sub: user.id,
         username: user.username,
         admin: user.isAdmin,
-        typ: JWT_TYPE_ACCESS,
+        id: v4(),
       },
       accessSecret,
     );
@@ -35,7 +35,7 @@ class JwtService {
         nbf: now.unix(),
         exp: now.add(Env.JWT_REFRESH_LIFETIME, "second").unix(),
         sub: user.id,
-        typ: JWT_TYPE_REFRESH,
+        id: v4(),
       },
       refreshSecret,
     );
@@ -49,7 +49,7 @@ class JwtService {
         nbf: now.unix(),
         exp: now.add(30, "second").unix(),
         sub: user.id,
-        typ: JWT_TYPE_OAUTH2,
+        id: v4(),
       },
       oauth2Secret,
     );

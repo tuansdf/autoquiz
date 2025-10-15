@@ -35,7 +35,7 @@ class Middleware {
       const requestId = c.var.requestId;
       logger.error({ requestId, error: err });
       const response = exceptionUtils.toResponse(err);
-      return Response.json({ message: response.message }, { status: response.status });
+      return Response.json({ message: response.message }, { status: response.status! });
     };
   }
 }

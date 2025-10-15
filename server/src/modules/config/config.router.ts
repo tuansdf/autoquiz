@@ -4,16 +4,19 @@ import { configService } from "./config.service";
 
 export const configRouter = new Hono();
 
-configRouter.get("/", authenticate(), authorize(), async () => {
+configRouter.use(authenticate());
+configRouter.use(authorize());
+
+configRouter.get("/", async () => {
   return Response.json({ data: await configService.findAll() });
 });
 
-configRouter.post("/", authenticate(), authorize(), async (c) => {
+configRouter.post("/", async (c) => {
   const request = await c.req.json();
   return Response.json({ data: await configService.create(request) });
 });
 
-configRouter.patch("/", authenticate(), authorize(), async (c) => {
+configRouter.patch("/", async (c) => {
   const request = await c.req.json();
   return Response.json({ data: await configService.update(request) });
 });

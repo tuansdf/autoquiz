@@ -57,7 +57,7 @@ class AuthService {
     };
   }
 
-  public async exchangeToken(request: RefreshTokenRequest): Promise<LoginResponse> {
+  public async exchangeOauth2Token(request: RefreshTokenRequest): Promise<LoginResponse> {
     const jwtPayload = await jwtService.verifyOauth2Jwt(request.token);
     if (!jwtPayload || !jwtPayload.iat) {
       throw new CustomException("Invalid credentials", 401);

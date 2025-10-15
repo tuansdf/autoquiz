@@ -1,8 +1,9 @@
 import { ZodError } from "zod";
 import { CustomException } from "../custom-exception";
+import type { CommonResponse } from "../types";
 
 class ExceptionUtils {
-  public toResponse(err: unknown): { message: string; status: number } {
+  public toResponse(err: unknown): CommonResponse {
     let errorMessage = "Something Went Wrong";
     let status = 500;
     if (err instanceof CustomException) {

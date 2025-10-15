@@ -2,8 +2,8 @@ import { googleAuth } from "@hono/oauth-providers/google";
 import { Hono } from "hono";
 import { Env } from "../../env";
 import { logger } from "../../utils/logger";
+import { authSchemas } from "./auth.schema";
 import { authService } from "./auth.service";
-import { authValidator } from "./auth.validator";
 
 export const oauth2Router = new Hono();
 
@@ -30,6 +30,6 @@ oauth2Router.get(
 );
 
 oauth2Router.post("/token/exchange", async (c) => {
-  const request = authValidator.validateRefreshToken(await c.req.json());
-  return Response.json({ data: await authService.exchangeToken(request) });
+  const request = authSchemas.refreshToken.parse(await c.req.json());
+  return Response.json({ data: await authService.exchangeOauth2Token(request) });
 });
