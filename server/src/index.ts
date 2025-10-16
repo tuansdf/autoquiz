@@ -9,6 +9,8 @@ import { routes } from "./routes";
 const app = new Hono();
 
 app.use(middleware.logger());
+app.use(middleware.jwt());
+app.use(middleware.context());
 app.use(cors({ origin: Env.CLIENT_ORIGIN }));
 app.use(secureHeaders());
 
