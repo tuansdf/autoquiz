@@ -5,10 +5,16 @@ import { exceptionUtils } from "./utils/exception.util";
 import { logger } from "./utils/logger";
 
 class Middleware {
-  private async getJwtPayload(c: Context) {
+  private getJwtToken(c: Context) {
     const authHeader = c.req.header("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) return undefined;
-    const bearerToken = authHeader.substring(7);
+    if (authHeader) {
+      if (!authHeader.startsWith("Bearer ")) return undefined;
+      return authHeader.substring(7);
+    }
+  }
+
+  private async getJwtPayload(c: Context) {
+    const bearerToken = this.getJwtToken(c);
     if (!bearerToken) return undefined;
     const payload = await jwtService.verifyAccessJwt(bearerToken);
     if (!payload) return undefined;

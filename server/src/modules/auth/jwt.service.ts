@@ -13,7 +13,7 @@ const oauth2Secret = encoder.encode(Env.JWT_OAUTH2_SECRET);
 class JwtService {
   public async createAccessJwt(user: User): Promise<string> {
     const now = dayjs();
-    return await jwt.sign(
+    return jwt.sign(
       {
         iat: now.unix(),
         nbf: now.unix(),
@@ -29,7 +29,7 @@ class JwtService {
 
   public async createRefreshJwt(user: User): Promise<string> {
     const now = dayjs();
-    return await jwt.sign(
+    return jwt.sign(
       {
         iat: now.unix(),
         nbf: now.unix(),
@@ -43,7 +43,7 @@ class JwtService {
 
   public async createOauth2Jwt(user: User): Promise<string> {
     const now = dayjs();
-    return await jwt.sign(
+    return jwt.sign(
       {
         iat: now.unix(),
         nbf: now.unix(),
