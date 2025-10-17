@@ -8,7 +8,6 @@ export const logger = pino(
       const context = getContext();
       return {
         requestId: context.var.requestId,
-        userId: context.var.authPayload?.sub,
       };
     },
   },

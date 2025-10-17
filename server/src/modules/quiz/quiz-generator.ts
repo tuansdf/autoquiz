@@ -1,10 +1,8 @@
-import { GoogleGenAI } from "@google/genai";
+import { google } from "@ai-sdk/google";
+import { generateObject } from "ai";
 import { z } from "zod";
-import { Env } from "../../env";
 import type { MakeNullish } from "../../types";
 import { remoteConfigs } from "../config/remote-configs";
-
-const ai = new GoogleGenAI({ apiKey: Env.GEMINI_API_KEY });
 
 const responseSchema = z
   .object({
@@ -34,8 +32,6 @@ const responseSchema = z
       .describe("An array of quiz questions derived from the dataset."),
   })
   .describe("Multiple Choice Questions Dataset");
-
-const responseSchemaJson = z.toJSONSchema(responseSchema);
 
 export type Questions = MakeNullish<{
   text: string;
@@ -101,44 +97,33 @@ class QuizGenerator {
     numberOfQuestions: number,
     previousQuestions: Response["questions"],
   ): Promise<Response | null> {
-    const response = await ai.models.generateContent({
-      model: (await remoteConfigs.getLLMModel()) || "gemini-2.5-flash-lite",
-      contents: [
+    const response = await generateObject({
+      model: google(await remoteConfigs.getLLMModel()),
+      system: (await remoteConfigs.getLLMInstruction()) || systemInstruction,
+      messages: [
         {
           role: "user",
-          parts: [
+          content: [
             {
-              text: `previous questions: ${JSON.stringify(previousQuestions)}`,
-            },
-          ],
-        },
-        {
-          role: "user",
-          parts: [
-            {
-              text: `generate exactly ${numberOfQuestions} questions`,
-            },
-          ],
-        },
-        {
-          role: "user",
-          parts: [
-            {
-              text: context,
+              type: "text",
+              text: `
+previous questions: ${JSON.stringify(previousQuestions)}.
+generate exactly ${numberOfQuestions} new questions.
+context: ${context}`.trim(),
             },
           ],
         },
       ],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchemaJson,
-        systemInstruction: (await remoteConfigs.getLLMInstruction()) || systemInstruction,
-        thinkingConfig: {
-          thinkingBudget: 0,
+      schema: responseSchema,
+      providerOptions: {
+        google: {
+          thinkingConfig: {
+            thinkingBudget: 0,
+          },
         },
       },
     });
-    return responseSchema.parse(JSON.parse(response.text || ""));
+    return response.object;
   }
 }
 
