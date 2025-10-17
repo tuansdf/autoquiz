@@ -30,14 +30,12 @@ class Middleware {
       const path = c.req.path;
       const method = c.req.method;
       logger.info({
-        requestId,
         event: "ENTER",
         method,
         path,
       });
       await next();
       logger.info({
-        requestId,
         userId: c.var.authPayload?.sub,
         event: "EXIT",
         method,
@@ -56,8 +54,7 @@ class Middleware {
 
   public errorHandler(): ErrorHandler {
     return (err, c) => {
-      const requestId = c.var.requestId;
-      logger.error({ requestId, err });
+      logger.error({ err });
       const response = exceptionUtils.toResponse(err);
       return Response.json({ message: response.message }, { status: response.status! });
     };

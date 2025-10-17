@@ -22,8 +22,8 @@ oauth2Router.get(
       const user = c.get("user-google");
       const code = await authService.loginByUsername(user?.email || "");
       return c.redirect(Env.CLIENT_OAUTH_CALLBACK_URL.replace("{code}", code));
-    } catch (e) {
-      logger.error({ requestId: c.var.requestId, error: e });
+    } catch (err) {
+      logger.error({ err });
       return c.redirect(Env.CLIENT_OAUTH_CALLBACK_URL.replace("{code}", ""));
     }
   },
