@@ -1,4 +1,4 @@
-import { questions } from "../../db/schema/questions";
+import { questions } from "../../db/schema";
 import type { MakeNullish } from "../../types";
 
 export type Question = typeof questions.$inferSelect;

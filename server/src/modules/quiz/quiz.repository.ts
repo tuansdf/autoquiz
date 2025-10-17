@@ -1,10 +1,10 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db/db";
-import { quizzes } from "../../db/schema/quizzes";
+import { quizzes } from "../../db/schema";
 import type { NewQuiz, Quiz, QuizListItem, QuizPrivate, QuizPublic } from "./quiz.type";
 
 class QuizRepository {
-  public async findTopByIdAndCreatedBy(id: string, userId: string): Promise<QuizPrivate | null> {
+  public async findTopByIdAndCreatedBy(id: string, userId: string): Promise<QuizPrivate | undefined> {
     const result = await db
       .select({
         id: quizzes.id,
@@ -16,11 +16,10 @@ class QuizRepository {
       .from(quizzes)
       .where(and(eq(quizzes.id, id), eq(quizzes.createdBy, userId)))
       .limit(1);
-    if (!result.length || !result[0]) return null;
     return result[0];
   }
 
-  public async findTopByIdAndIsPublic(id: string): Promise<QuizPublic | null> {
+  public async findTopByIdAndIsPublic(id: string): Promise<QuizPublic | undefined> {
     const result = await db
       .select({
         id: quizzes.id,
@@ -29,7 +28,6 @@ class QuizRepository {
       .from(quizzes)
       .where(and(eq(quizzes.id, id), eq(quizzes.isPublic, true)))
       .limit(1);
-    if (!result.length || !result[0]) return null;
     return result[0];
   }
 
@@ -53,16 +51,14 @@ class QuizRepository {
       .where(and(eq(quizzes.id, id), eq(quizzes.createdBy, userId)));
   }
 
-  public async insert(values: NewQuiz): Promise<Quiz | null> {
+  public async insert(values: NewQuiz): Promise<Quiz | undefined> {
     const result = await db.insert(quizzes).values(values).returning();
-    if (!result.length || !result[0]) return null;
     return result[0];
   }
 
-  public async update(values: NewQuiz): Promise<Quiz | null> {
-    if (!values.id) return null;
+  public async update(values: NewQuiz): Promise<Quiz | undefined> {
+    if (!values.id) return;
     const result = await db.update(quizzes).set(values).where(eq(quizzes.id, values.id)).returning();
-    if (!result.length || !result[0]) return null;
     return result[0];
   }
 }

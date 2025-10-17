@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "../../db/db";
-import { users } from "../../db/schema/users";
+import { users } from "../../db/schema";
 import type { NewUser, User } from "./user.type";
 
 class UserRepository {
@@ -9,18 +9,16 @@ class UserRepository {
       .select({ value: sql`1`.mapWith(Number) })
       .from(users)
       .limit(1);
-    return Boolean(result.length && result[0]?.value);
+    return Boolean(result[0]?.value);
   }
 
-  public async findTopById(id: string): Promise<User | null> {
+  public async findTopById(id: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-    if (!result.length || !result[0]) return null;
     return result[0];
   }
 
-  public async findTopByUsername(username: string): Promise<User | null> {
+  public async findTopByUsername(username: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
-    if (!result.length || !result[0]) return null;
     return result[0];
   }
 
@@ -29,19 +27,14 @@ class UserRepository {
     await db.update(users).set({ tokenValidFrom: now, updatedAt: now }).where(eq(users.id, userId));
   }
 
-  public async insert(values: NewUser): Promise<User | null> {
+  public async insert(values: NewUser): Promise<User | undefined> {
     const result = await db.insert(users).values(values).returning();
-    if (!result.length || !result[0]) return null;
     return result[0];
   }
 
-  public async update(values: NewUser): Promise<User | null> {
-    const result = await db
-      .update(users)
-      .set(values)
-      .where(eq(users.id, values.id || ""))
-      .returning();
-    if (!result.length || !result[0]) return null;
+  public async update(values: NewUser): Promise<User | undefined> {
+    if (!values.id) return;
+    const result = await db.update(users).set(values).where(eq(users.id, values.id)).returning();
     return result[0];
   }
 }

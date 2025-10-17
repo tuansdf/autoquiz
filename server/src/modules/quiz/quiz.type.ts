@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { quizzes } from "../../db/schema/quizzes";
+import { quizzes } from "../../db/schema";
 import type { MakeNullish } from "../../types";
 import type { quizSchemas } from "./quiz.schema";
 

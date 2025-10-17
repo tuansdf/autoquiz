@@ -3,11 +3,11 @@ import { questionRepository } from "./question.repository";
 import type { NewQuestion, Question } from "./question.type";
 
 class QuestionService {
-  public async findAllByQuizId(quizId: string): Promise<Question[] | null> {
+  public async findAllByQuizId(quizId: string): Promise<Question[]> {
     return questionRepository.findAllByQuizId(quizId);
   }
 
-  public async addAllByQuizId(questions: NewQuestion[], quizId: string): Promise<undefined> {
+  public async addAllByQuizId(questions: NewQuestion[], quizId: string): Promise<void> {
     if (!questions.length) return;
     questions.forEach((question) => {
       question.quizId = quizId;
@@ -15,7 +15,7 @@ class QuestionService {
         answer.id = v4();
       });
     });
-    return questionRepository.insertAll(questions);
+    await questionRepository.insertAll(questions);
   }
 }
 

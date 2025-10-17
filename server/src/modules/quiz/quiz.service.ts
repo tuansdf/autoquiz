@@ -9,9 +9,9 @@ import { quizRepository } from "./quiz.repository";
 import type { CreateQuizRequest, Quiz, QuizListItem, QuizPrivate, QuizPublic } from "./quiz.type";
 
 class QuizService {
-  public async findOneById(id: string, userId: string): Promise<QuizPrivate | null> {
+  public async findOneById(id: string, userId: string): Promise<QuizPrivate | undefined> {
     const quiz = await quizRepository.findTopByIdAndCreatedBy(id, userId);
-    if (!quiz) return null;
+    if (!quiz) return;
     const questions = await questionService.findAllByQuizId(quiz.id || "");
     if (questions?.length) {
       quiz.questions = base64.encode(JSON.stringify(questions), { compression: true });
@@ -19,9 +19,9 @@ class QuizService {
     return quiz;
   }
 
-  public async findOnePublicById(id: string): Promise<QuizPublic | null> {
+  public async findOnePublicById(id: string): Promise<QuizPublic | undefined> {
     const quiz = await quizRepository.findTopByIdAndIsPublic(id);
-    if (!quiz) return null;
+    if (!quiz) return;
     const questions = await questionService.findAllByQuizId(quiz.id || "");
     if (questions?.length) {
       quiz.questions = base64.encode(JSON.stringify(questions), { compression: true });
