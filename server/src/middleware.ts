@@ -3,7 +3,6 @@ import { v4 } from "uuid";
 import { jwtService } from "./modules/auth/jwt.service";
 import { exceptionUtils } from "./utils/exception.util";
 import { logger } from "./utils/logger";
-import { runWithContext } from "./utils/request-context";
 
 class Middleware {
   private async getJwtPayload(c: Context) {
@@ -20,18 +19,6 @@ class Middleware {
     return async (c, next) => {
       c.set("authPayload", await this.getJwtPayload(c));
       await next();
-    };
-  }
-
-  public context(): MiddlewareHandler {
-    return async (c, next) => {
-      runWithContext(
-        {
-          requestId: c.var.requestId,
-          userId: c.var.authPayload?.sub,
-        },
-        next,
-      );
     };
   }
 
